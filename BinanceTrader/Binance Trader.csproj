@@ -1,0 +1,173 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<UseWPF>true</UseWPF>
+		<Nullable>enable</Nullable>
+		<OutputType>WinExe</OutputType>
+		<LangVersion>10.0</LangVersion>
+		<NeutralLanguage>en</NeutralLanguage>
+		<RootNamespace>BTNET</RootNamespace>
+		<StartupObject>BTNET.App</StartupObject>
+		<TargetFramework>net48</TargetFramework>
+		<AssemblyName>Binance Trader</AssemblyName>
+		<AssemblyTitle>Binance Trader</AssemblyTitle>
+		<Product>Binance Trader</Product>
+		<Configurations>Debug;Release;Design</Configurations>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Version>2.4.0.0</Version>
+		<FileVersion>2.4.0.0</FileVersion>
+		<AssemblyVersion>2.4.0.0</AssemblyVersion>
+		<Authors>S Christison</Authors>
+		<Company>S Christison</Company>
+		<Copyright>S Christison ©2022</Copyright>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<SignAssembly>True</SignAssembly>
+		<Platforms>AnyCPU;x64;x86</Platforms>
+		<ApplicationIcon>BV\Resources\icon.ico</ApplicationIcon>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<AssemblyOriginatorKeyFile>..\Key.snk</AssemblyOriginatorKeyFile>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
+		<RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
+		<RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<IsPublishable>False</IsPublishable>
+		<PackageId>BinanceTrader.NET</PackageId>
+		<Description>Real Time Trading / Quotes / Alerts / Watchlist and more for Binance.com</Description>
+		<PackageProjectUrl>https://github.com/HypsyNZ/BinanceTrader.NET</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/HypsyNZ/BinanceTrader.NET</RepositoryUrl>
+		<BaseOutputPath>bin\</BaseOutputPath>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryType>git</RepositoryType>
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="BVVM\BT\Json\TJsonTest\**" />
+	  <EmbeddedResource Remove="BVVM\BT\Json\TJsonTest\**" />
+	  <None Remove="BVVM\BT\Json\TJsonTest\**" />
+	  <Page Remove="BVVM\BT\Json\TJsonTest\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf">
+			<Version>1.1.39</Version>
+		</PackageReference>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<Reference Include="System.Net.Http" />
+		<Reference Include="System.Web" />
+		<Reference Include="System.Windows.Forms" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<None Remove="BV\Resources\Connection\connection-status-connected.png" />
+		<None Remove="BV\Resources\Connection\connection-status-connecting.png" />
+		<None Remove="BV\Resources\Connection\connection-status-disconnected.png" />
+		<None Remove="BV\Resources\Exit\close-button-disabled.png" />
+		<None Remove="BV\Resources\Exit\close-button-mouseover.png" />
+		<None Remove="BV\Resources\Exit\close-button-pressed.png" />
+		<None Remove="BV\Resources\Exit\close-button.png" />
+		<None Remove="BV\Resources\about.png" />
+		<None Remove="BV\Resources\addalert.png" />
+		<None Remove="BV\Resources\bellicon.png" />
+		<None Remove="BV\Resources\log.png" />
+		<None Remove="BV\Resources\menu-button.png" />
+		<None Remove="BV\Resources\Menu\menu-button-mouseover.png" />
+		<None Remove="BV\Resources\Menu\menu-button-pressed.png" />
+		<None Remove="BV\Resources\Menu\menu-button.png" />
+		<None Remove="BV\Resources\notepad.png" />
+		<None Remove="BV\Resources\ordersettings.png" />
+		<None Remove="BV\Resources\remove.png" />
+		<None Remove="BV\Resources\Remove\remove-button-disabled.png" />
+		<None Remove="BV\Resources\Remove\remove-button-mouseover.png" />
+		<None Remove="BV\Resources\Remove\remove-button-pressed.png" />
+		<None Remove="BV\Resources\Remove\remove-button.png" />
+		<None Remove="BV\Resources\save.png" />
+		<None Remove="BV\Resources\savings.png" />
+		<None Remove="BV\Resources\settingsnew.png" />
+		<None Remove="BV\Resources\Side\close-side-menu-pressed.png" />
+		<None Remove="BV\Resources\Side\close-side-menu.png" />
+		<None Remove="BV\Resources\Side\open-side-menu-pressed.png" />
+		<None Remove="BV\Resources\Side\open-side-menu.png" />
+		<None Remove="BV\Resources\stratview.png" />
+		<None Remove="BV\Resources\Top\top-disabled.png" />
+		<None Remove="BV\Resources\Top\top-mouseover.png" />
+		<None Remove="BV\Resources\Top\top-pressed.png" />
+		<None Remove="BV\Resources\Top\top.png" />
+		<None Remove="BV\Resources\watchlist.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="BV\Resources\icon.ico" />
+		<Resource Include="BV\Resources\Connection\connection-status-connected.png" />
+		<Resource Include="BV\Resources\Connection\connection-status-connecting.png" />
+		<Resource Include="BV\Resources\Connection\connection-status-disconnected.png" />
+		<Resource Include="BV\Resources\Exit\close-button-disabled.png" />
+		<Resource Include="BV\Resources\Exit\close-button-mouseover.png" />
+		<Resource Include="BV\Resources\Exit\close-button-pressed.png" />
+		<Resource Include="BV\Resources\Exit\close-button.png" />
+		<Resource Include="BV\Resources\addalert.png" />
+		<Resource Include="BV\Resources\bellicon.png" />
+		<Resource Include="BV\Resources\about.png" />
+		<Resource Include="BV\Resources\log.png" />
+		<Resource Include="BV\Resources\Menu\menu-button-mouseover.png" />
+		<Resource Include="BV\Resources\Menu\menu-button-pressed.png" />
+		<Resource Include="BV\Resources\Menu\menu-button.png" />
+		<Resource Include="BV\Resources\notepad.png" />
+		<Resource Include="BV\Resources\ordersettings.png" />
+		<Resource Include="BV\Resources\Remove\remove-button-disabled.png" />
+		<Resource Include="BV\Resources\Remove\remove-button-mouseover.png" />
+		<Resource Include="BV\Resources\Remove\remove-button-pressed.png" />
+		<Resource Include="BV\Resources\Remove\remove-button.png" />
+		<Resource Include="BV\Resources\save.png" />
+		<Resource Include="BV\Resources\savings.png" />
+		<Resource Include="BV\Resources\settingsnew.png" />
+		<Resource Include="BV\Resources\Side\close-side-menu-pressed.png" />
+		<Resource Include="BV\Resources\Side\close-side-menu.png" />
+		<Resource Include="BV\Resources\Side\open-side-menu-pressed.png" />
+		<Resource Include="BV\Resources\Side\open-side-menu.png" />
+		<Resource Include="BV\Resources\stratview.png" />
+		<Resource Include="BV\Resources\Top\top-disabled.png" />
+		<Resource Include="BV\Resources\Top\top-mouseover.png" />
+		<Resource Include="BV\Resources\Top\top-pressed.png" />
+		<Resource Include="BV\Resources\Top\top.png" />
+		<Resource Include="BV\Resources\watchlist.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="BV\Resources\Resource.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Resource.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Update="BV\Resources\Resource.resx">
+			<Generator>PublicResXFileCodeGenerator</Generator>
+			<LastGenOutput>Resource.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<PropertyGroup>
+		<MSVCPath>C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Redist\\MSVC\\14.34.31931\\x64\\Microsoft.VC143.CRT\\</MSVCPath>
+		<CopyVC>true</CopyVC>
+	</PropertyGroup>
+
+	<Target Name="CopyRedistributables" AfterTargets="Build" Condition="'$(Configuration)'=='RELEASE' and '$(CopyVC)'=='true'">
+		<Message Text="Copy VC Redistributables to Build Folder" Importance="High" />
+		<Copy SourceFiles="$(MSVCPath)msvcp140.dll;$(MSVCPath)concrt140.dll;$(MSVCPath)msvcp140_1.dll;$(MSVCPath)msvcp140_2.dll;$(MSVCPath)msvcp140_atomic_wait.dll;$(MSVCPath)msvcp140_codecvt_ids.dll;$(MSVCPath)vccorlib140.dll;$(MSVCPath)vcruntime140.dll;$(MSVCPath)vcruntime140_1.dll" DestinationFolder="$(TargetDir)" />
+		<Message Text="Copied Redistributables" Importance="High" />
+	</Target>
+</Project>

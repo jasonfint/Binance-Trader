@@ -1,0 +1,394 @@
+﻿<!--
+    *
+    *MIT License
+    *
+    *Copyright (c) 2022 S Christison
+    *
+    *Permission is hereby granted, free of charge, to any person obtaining a copy
+    *of this software and associated documentation files (the "Software"), to deal
+    *in the Software without restriction, including without limitation the rights
+    *to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    *copies of the Software, and to permit persons to whom the Software is
+    *furnished to do so, subject to the following conditions:
+    *
+    *The above copyright notice and this permission notice shall be included in all
+    *copies or substantial portions of the Software.
+    *
+    *THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    *IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    *FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    *AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    *LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    *OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    *SOFTWARE.
+    *
+-->
+
+<UserControl
+    x:Class="BTNET.VM.Controls.CanvasControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:BTNET.BV.Converters"
+    Name="CanvasC"
+    SizeChanged="CanvasC_SizeChanged">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <converters:NumericFieldConverter x:Key="converter" />
+        <converters:ConvertFormattingBase x:Key="tickScale"/>
+        <converters:ConvertPriceTickScaleBase x:Key="priceScale"/>
+    </UserControl.Resources>
+
+    <Canvas
+        x:Name="Canvas"
+        HorizontalAlignment="Left"
+        VerticalAlignment="Bottom">
+        <StackPanel
+            x:Name="MarginBox"
+            Canvas.Left="{Binding VisibilityVM.PanelMarginInfoLeft, Mode=TwoWay}"
+            Canvas.Top="{Binding VisibilityVM.PanelMarginInfoTop, Mode=TwoWay}"
+            Width="100"
+            MouseMove="MarginBox_MouseMove"
+            Orientation="Vertical"
+            PreviewMouseLeftButtonDown="MarginBox_PreviewMouseLeftButtonDown"
+            UseLayoutRounding="True">
+            <GroupBox 
+                Opacity="{Binding MainVM.Opacity,Mode=TwoWay}"
+                Foreground="AntiqueWhite" 
+                Visibility="{Binding BorrowVM.IsolatedInfoVisible, Converter={StaticResource BoolToVis}}">
+                <GroupBox.Header>
+                    <TextBlock
+                        Width="98"
+                        Effect="{DynamicResource TextBlockShadow}"
+                        FontSize="11"
+                        Text="Isolated"
+                        TextAlignment="Center" />
+                </GroupBox.Header>
+                <StackPanel>
+                    <Grid>
+                        <TextBlock Text="Level" TextAlignment="Center" />
+                    </Grid>
+                    <Grid>
+                        <TextBlock Text="{Binding BorrowVM.MarginLevel, Converter={StaticResource converter}}" TextAlignment="Center" />
+                    </Grid>
+                    <Grid>
+                        <TextBlock Text="Liquidation" TextAlignment="Center" />
+                    </Grid>
+                    <Grid>
+                        <TextBlock Text="{Binding BorrowVM.LiquidationPrice, Converter={StaticResource converter}}" TextAlignment="Center" />
+                    </Grid>
+                </StackPanel>
+            </GroupBox>
+            <GroupBox
+                Width="100"
+                Foreground="AntiqueWhite"
+                Opacity="{Binding MainVM.Opacity,Mode=TwoWay}"
+                Visibility="{Binding BorrowVM.MarginInfoVisible, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVis}}">
+                <GroupBox.Header>
+                    <TextBlock
+                        Effect="{DynamicResource TextBlockShadow}"
+                        FontSize="11"
+                        Text="Margin Info"
+                        TextAlignment="Center" />
+                </GroupBox.Header>
+                <StackPanel>
+                    <Grid>
+                        <TextBlock Text="Level" TextAlignment="Center" />
+                    </Grid>
+                    <Grid>
+                        <TextBlock Text="{Binding BorrowVM.MarginLevel, StringFormat=' \{0:N8\}'}" TextAlignment="Center" />
+                    </Grid>
+                    <Grid>
+                        <TextBlock Text="Total" TextAlignment="Center" />
+                    </Grid>
+                    <Grid>
+                        <TextBlock Text="{Binding BorrowVM.TotalAssetOfBtc, StringFormat=' \{0:N8\}'}" TextAlignment="Center" />
+                    </Grid>
+                    <Grid>
+                        <TextBlock Text="Liability" TextAlignment="Center" />
+                    </Grid>
+                    <Grid>
+                        <TextBlock Text="{Binding BorrowVM.TotalLiabilityOfBtc, StringFormat=' \{0:N8\}'}" TextAlignment="Center" />
+                    </Grid>
+                    <Grid>
+                        <TextBlock Text="Equity" TextAlignment="Center" />
+                    </Grid>
+                    <Grid>
+                        <TextBlock Text="{Binding BorrowVM.TotalNetAssetOfBtc, StringFormat=' \{0:N8\}'}" TextAlignment="Center" />
+                    </Grid>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+        <GroupBox
+            x:Name="BorrowBox"
+            Canvas.Left="{Binding VisibilityVM.PanelBorrowBoxLeft, Mode=TwoWay}"
+            Canvas.Top="{Binding VisibilityVM.PanelBorrowBoxTop, Mode=TwoWay}"
+            Width="100"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Bottom"
+            MouseMove="BorrowBox_MouseMove"
+            PreviewMouseLeftButtonDown="BorrowBox_PreviewMouseLeftButtonDown"
+            Foreground="AntiqueWhite"
+            Visibility="{Binding BorrowVM.BorrowInfoVisible, Converter={StaticResource BoolToVis}}"
+            Opacity="{Binding MainVM.Opacity,Mode=TwoWay}"
+            UseLayoutRounding="True">
+            <GroupBox.Header>
+                <TextBlock
+                        Effect="{DynamicResource TextBlockShadow}"
+                        FontSize="11"
+                        Text="{Binding BorrowVM.BorrowInformationHeader, UpdateSourceTrigger=PropertyChanged}"
+                        TextAlignment="Center" />
+            </GroupBox.Header>
+            <StackPanel>
+                <Grid Visibility="{Binding BorrowVM.BaseBorrowVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding BorrowVM.BorrowLabelBase, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.BaseBorrowVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding BorrowVM.BorrowedBase, Converter={StaticResource converter}, Mode=OneWay}" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.BaseInterestVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="Interest" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.BaseInterestVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding BorrowVM.InterestBase, StringFormat=' \{0:N8\}', Mode=OneWay}" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.BaseFreeVisible, Converter={StaticResource BoolToVis}}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button
+                            Height="13"
+                            Margin="0,0,3,0"
+                            HorizontalAlignment="Left"
+                            Command="{Binding TradeVM.SellBaseFreeCommand}"
+                            CommandParameter="{Binding}"
+                            Content="S"
+                            TextBlock.FontSize="8"                        
+                            Visibility="{Binding BorrowVM.BaseFreeVisible, Converter={StaticResource BoolToVis}}" />
+                        <Button
+                            Height="13"
+                            Margin="0,0,3,0"
+                            HorizontalAlignment="Left"
+                            Command="{Binding TradeVM.SellBaseFreeAndClearCommand}"
+                            CommandParameter="{Binding}"
+                            Content="C"
+                            TextBlock.FontSize="8"                      
+                            Visibility="{Binding BorrowVM.BaseFreeVisible, Converter={StaticResource BoolToVis}}" />
+                        <TextBlock Text="{Binding BorrowVM.BorrowLabelBaseFree, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" TextAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.BaseFreeVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding BorrowVM.FreeBase, Converter={StaticResource converter}, Mode=OneWay}" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.BaseLockedVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="Locked" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.BaseLockedVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding BorrowVM.LockedBase, Converter={StaticResource converter}, Mode=OneWay}" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.BaseTotalVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="Total" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.BaseTotalVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding BorrowVM.TotalBase, Converter={StaticResource converter}, Mode=OneWay}" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.QuoteBorrowVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding BorrowVM.BorrowLabelQuote, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.QuoteBorrowVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding BorrowVM.BorrowedQuote, Converter={StaticResource converter}, Mode=OneWay}" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.QuoteInterestVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="Interest" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.QuoteInterestVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding BorrowVM.InterestQuote, Converter={StaticResource converter}, Mode=OneWay}" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.QuoteFreeVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding BorrowVM.BorrowLabelQuoteFree, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.QuoteFreeVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding BorrowVM.FreeQuote, Converter={StaticResource converter}, Mode=OneWay}" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.QuoteLockedVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="Locked" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.QuoteLockedVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding BorrowVM.LockedQuote, Converter={StaticResource converter}, Mode=OneWay}" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.QuoteTotalVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="Total" TextAlignment="Center" />
+                </Grid>
+                <Grid Visibility="{Binding BorrowVM.QuoteTotalVisible, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding BorrowVM.TotalQuote, Converter={StaticResource converter}, Mode=OneWay}" TextAlignment="Center" />
+                </Grid>
+            </StackPanel>
+        </GroupBox>
+        <GroupBox
+            x:Name="RealTimeBox"
+            Canvas.Left="{Binding VisibilityVM.PanelRealTimeLeft, Mode=TwoWay}"
+            Canvas.Top="{Binding VisibilityVM.PanelRealTimeTop, Mode=TwoWay}"
+            Width="100"
+            Height="90"
+            Padding="1,0"
+            BorderBrush="BlanchedAlmond"
+            BorderThickness="1"
+            Foreground="AntiqueWhite"
+            MouseMove="RealTimeBox_MouseMove"
+            PreviewMouseLeftButtonDown="RealTimeBox_PreviewMouseLeftButtonDown"
+            Style="{StaticResource RealTimeBoxStyle}"
+            UseLayoutRounding="True">
+            <GroupBox.Header>
+                <TextBlock
+                    FontSize="10"
+                    Foreground="Gray"
+                    Text="{Binding BorrowVM.SymbolName}"
+                    TextAlignment="Center" />
+            </GroupBox.Header>
+            <StackPanel>
+                <Grid>
+                    <TextBlock Text="{Binding RealTimeVM.AskPrice, Converter={StaticResource priceScale}}" TextBlock.Foreground="Red" />
+                </Grid>
+                <Grid>
+                    <TextBlock Text="{Binding RealTimeVM.AskQuantity, Converter={StaticResource tickScale}}" TextBlock.Foreground="Red" />
+                </Grid>
+                <Grid>
+                    <TextBlock Text="{Binding RealTimeVM.BidPrice, Converter={StaticResource priceScale}}" TextBlock.Foreground="MediumSpringGreen" />
+                </Grid>
+                <Grid>
+                    <TextBlock Text="{Binding RealTimeVM.BidQuantity, Converter={StaticResource tickScale}}" TextBlock.Foreground="MediumSpringGreen" />
+                </Grid>
+            </StackPanel>
+        </GroupBox>
+        <GroupBox
+            x:Name="InfoBox"
+            Canvas.Left="{Binding VisibilityVM.PanelInfoBoxLeft, Mode=TwoWay}"
+            Canvas.Top="{Binding VisibilityVM.PanelInfoBoxTop, Mode=TwoWay}"
+            Width="100"
+            MinWidth="100"
+            Padding="1,0"
+            Foreground="AntiqueWhite"
+            MouseMove="InfoBoxMove"
+            PreviewMouseLeftButtonDown="InfoBoxDown"
+            UseLayoutRounding="True"
+            Opacity="{Binding MainVM.Opacity,Mode=TwoWay}"
+            Visibility="{Binding SettingsVM.ShowSymbolInfoIsChecked, Converter={StaticResource BoolToVis}}">
+            <GroupBox.Header>
+                <TextBlock
+                    Effect="{DynamicResource TextBlockShadow}"
+                    FontSize="11"
+                    Text="Symbol Info" />
+            </GroupBox.Header>
+            <StackPanel>
+                <Grid>
+                    <TextBlock HorizontalAlignment="Center" Text="Trade Fee" />
+                </Grid>
+                <Grid>
+                    <TextBlock HorizontalAlignment="Center" Text="{Binding CurrentlySelectedSymbol.TradeFeeString}" />
+                </Grid>
+
+                <Grid>
+                    <TextBlock HorizontalAlignment="Center" Text="Daily Interest" />
+                </Grid>
+                <Grid>
+                    <TextBlock HorizontalAlignment="Center" Text="{Binding CurrentlySelectedSymbol.DailyInterestRateString}" />
+                </Grid>
+
+                <Grid>
+                    <TextBlock HorizontalAlignment="Center" Text="Yearly Interest" />
+                </Grid>
+                <Grid>
+                    <TextBlock HorizontalAlignment="Center" Text="{Binding CurrentlySelectedSymbol.YearlyInterestRateString}" />
+                </Grid>
+            </StackPanel>
+        </GroupBox>
+        <GroupBox
+            x:Name="BreakdownBox"
+            Canvas.Left="{Binding VisibilityVM.PanelBreakdownLeft, Mode=TwoWay}"
+            Canvas.Top="{Binding VisibilityVM.PanelBreakdownTop, Mode=TwoWay}"
+            Width="140"
+            MinWidth="140"
+            Padding="1,0"
+            Foreground="AntiqueWhite"
+            MouseMove="BreakDownBoxMove"
+            PreviewMouseLeftButtonDown="BreakDownBoxDown"
+            UseLayoutRounding="True"
+            Opacity="{Binding MainVM.Opacity, Mode=TwoWay}"
+            Visibility="{Binding BorrowVM.ShowBreakdown, Converter={StaticResource BoolToVis}}">
+            <GroupBox.Header>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock
+                        Effect="{DynamicResource TextBlockShadow}"
+                        FontSize="11"
+                        HorizontalAlignment="Center"
+                        Text="Breakdown" />
+                </StackPanel>
+            </GroupBox.Header>
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="23" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock HorizontalAlignment="Left" Text="One:" />
+                    <TextBlock
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        Text="{Binding CurrentlySelectedSymbol.One, Converter={StaticResource priceScale}}" />
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="23" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock HorizontalAlignment="Left" Text="Two:" />
+                    <TextBlock
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        Text="{Binding CurrentlySelectedSymbol.Two, Converter={StaticResource priceScale}}" />
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="23" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock HorizontalAlignment="Left" Text="PnL:" />
+                    <TextBlock
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        Text="{Binding QuoteVM.CombinedPnL, Converter={StaticResource tickScale}}" />
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="34" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock HorizontalAlignment="Left" Text="Quote:" />
+                    <TextBlock
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        Text="{Binding QuoteVM.CombinedTotal, Converter={StaticResource tickScale}}" />
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="30" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock HorizontalAlignment="Left" Text="Base:"/>
+                    <TextBlock
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        Text="{Binding QuoteVM.CombinedTotalBase, StringFormat=#\,0.############}" />
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        HorizontalAlignment="Center"
+                        Command="{Binding MainVM.ToggleScraperViewCommand}"
+                        Content="Scraper"
+                        TextBlock.FontSize="10"/>
+                </Grid>
+            </StackPanel>
+        </GroupBox>
+    </Canvas>
+</UserControl>
