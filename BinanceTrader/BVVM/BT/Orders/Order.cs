@@ -35,17 +35,47 @@ namespace BTNET.BVVM.BT.Orders
 {
     internal class Order : Core
     {
-        public static OrderBase NewOrderFromPlacedOrder(BinancePlacedOrder o, TradingMode tradingMode)
+        public static OrderBase NewScraperOrder(BinancePlacedOrder o, TradingMode tradingMode)
         {
-            return NewOrder(o, tradingMode);
+            BinanceTradeFee fee = TradeFee.GetTradeFee(o.Symbol);
+            var baseFee = TradeFeeNoInfo(o.Type, fee);
+            var orderFee = OrderHelper.Fee(TradeFeeNoInfo(o.Type, fee), o.Price, o.QuantityFilled);
+
+            decimal orderPrice;
+            if (o.AverageFillPrice > 0)
+            {
+                orderPrice = (decimal)o.AverageFillPrice;
+            }
+            else
+            {
+                orderPrice = o.Price;
+            }
+
+            return new OrderBase()
+            {
+                OrderId = o.OrderId,
+                Symbol = o.Symbol,
+                QuantityFilled = o.QuantityFilled,
+                Quantity = o.Quantity,
+                CumulativeQuoteQuantityFilled = o.QuoteQuantityFilled,
+                OrderFee = baseFee,
+                Price = orderPrice,
+                CreateTime = o.CreateTime,
+                UpdateTime = o.UpdateTime,
+                Side = o.Side,
+                Status = o.Status,
+                Type = o.Type,
+                PurchasedByScraper = true,
+                IsMaker = MakerNoInfo(o.Type, fee),
+                Fee = orderFee * App.FEE_MULTIPLIER,
+                MinPos = orderFee * App.MIN_PNL_FEE_MULTIPLIER,
+                TimeInForce = OrderHelper.TIF(o.TimeInForce.ToString()),
+                Fulfilled = OrderHelper.Fulfilled(o.Quantity, o.QuantityFilled),
+                Helper = new OrderHelperViewModel(o.Side, tradingMode, o.Symbol)
+            };
         }
 
         public static OrderBase NewOrderFromServer(BinanceOrderBase o, TradingMode tradingMode)
-        {
-            return NewOrder(o, tradingMode);
-        }
-
-        private static OrderBase NewOrder<T>(T o, TradingMode tradingMode) where T : BinanceOrderBase
         {
             BinanceTradeFee fee = TradeFee.GetTradeFee(o.Symbol);
             var baseFee = TradeFeeNoInfo(o.Type, fee);

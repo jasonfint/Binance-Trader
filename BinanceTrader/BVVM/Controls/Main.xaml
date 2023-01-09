@@ -33,7 +33,6 @@
         <ResourceDictionary Source="/BV/Controls/GridView/GridViewScrollViewerStyleKey.xaml" />
 
         <ResourceDictionary Source="/BV/Controls/GroupBox/GroupBox.xaml" />
-        <ResourceDictionary Source="/BV/Controls/GroupBox/RealTimeBoxStyle.xaml" />
 
         <ResourceDictionary Source="/BV/Controls/ListView/ListView.xaml" />
         <ResourceDictionary Source="/BV/Controls/ListView/ListViewItem.xaml" />

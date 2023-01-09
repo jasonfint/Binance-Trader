@@ -29,7 +29,6 @@ using BTNET.BV.Enum;
 using BTNET.BVVM.BT;
 using BTNET.BVVM.Helpers;
 using BTNET.VM.ViewModels;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -101,49 +100,51 @@ namespace BTNET.BVVM
 
             if (result != null && ex != null)
             {
-                InvokeUI.CheckAccess(() =>
+                if (result.Success)
                 {
-                    if (result.Success)
+                    var prices = result.Data.Select(r => new BinanceSymbolViewModel(r.Symbol, r.Price));
+                    Static.AllPricesUnfiltered = prices.ToList();
+                    foreach (var pr in prices)
                     {
-                        var prices = result.Data.Select(r => new BinanceSymbolViewModel(r.Symbol, r.Price));
-                        Static.AllPricesUnfiltered = new ObservableCollection<BinanceSymbolViewModel>(prices);
-                        foreach (var pr in prices)
+                        BinanceSymbolViewModel f = allSymbols.SingleOrDefault(allSymbols => allSymbols.SymbolView.Symbol == pr.SymbolView.Symbol);
+                        if (f != null)
                         {
-                            BinanceSymbolViewModel f = allSymbols.SingleOrDefault(allSymbols => allSymbols.SymbolView.Symbol == pr.SymbolView.Symbol);
-                            if (f != null)
+                            BinanceSymbol exSymbol = ex.Symbols.Where(exsym => exsym.Name == f.SymbolView.Symbol).FirstOrDefault();
+                            if (exSymbol != null)
                             {
-                                BinanceSymbol exSymbol = ex.Symbols.Where(exsym => exsym.Name == f.SymbolView.Symbol).FirstOrDefault();
-                                if (exSymbol != null)
+                                if (ShouldDestroy(exSymbol))
                                 {
-                                    if (ShouldDestroy(exSymbol))
-                                    {
-                                        allSymbols.Remove(f);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                BinanceSymbol exSymbol = ex.Symbols.Where(exsym => exsym.Name == pr.SymbolView.Symbol).FirstOrDefault();
-                                if (exSymbol != null)
-                                {
-                                    if (!ShouldDestroy(exSymbol))
-                                    {
-                                        allSymbols.Add(pr);
-                                    }
+                                    allSymbols.Remove(f);
                                 }
                             }
                         }
+                        else
+                        {
+                            BinanceSymbol exSymbol = ex.Symbols.Where(exsym => exsym.Name == pr.SymbolView.Symbol).FirstOrDefault();
+                            if (exSymbol != null)
+                            {
+                                if (!ShouldDestroy(exSymbol))
+                                {
+                                    allSymbols.Add(pr);
+                                }
+                            }
+                        }
+                    }
 
-                        Static.AllPrices = new ObservableCollection<BinanceSymbolViewModel>(allSymbols);
-                        MainVM.AllSymbolsOnUI = Static.AllPrices;
-                        WatchMan.SearchPrices.SetWorking();
-                    }
-                    else
+                    Static.AllPrices = allSymbols;
+
+                    InvokeUI.CheckAccess(() =>
                     {
-                        WatchMan.SearchPrices.SetError();
-                        _ = Prompt.ShowBox($"Error requesting All Price data: {result.Error!.Message}", "error");
-                    }
-                });
+                        MainVM.AllSymbolsOnUI = Static.AllPrices;
+                    });
+
+                    WatchMan.SearchPrices.SetWorking();
+                }
+                else
+                {
+                    WatchMan.SearchPrices.SetError();
+                    _ = Prompt.ShowBox($"Error requesting All Price data: {result.Error!.Message}", "error");
+                }
             }
 
             return true;

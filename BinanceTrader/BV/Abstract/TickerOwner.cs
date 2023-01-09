@@ -54,6 +54,11 @@ namespace BTNET.BV.Abstract
             }
         }
 
+        public IEnumerable<Owner> GetOwners()
+        {
+            return _owners;
+        }
+
         public bool Exists()
         {
             lock (_lock)

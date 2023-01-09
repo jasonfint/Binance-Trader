@@ -33,6 +33,6 @@ namespace BinanceAPI.Objects
         /// ctor
         /// </summary>
         /// <param name="message"></param>
-        public ArgumentError(string message) : base(null, "Invalid parameter: " + message, null) { }
+        public ArgumentError(string message) : base(999987, "Invalid parameter: " + message, null) { }
     }
 }

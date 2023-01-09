@@ -30,6 +30,7 @@ using BTNET.BVVM.BT.Orders;
 using BTNET.BVVM.Helpers;
 using BTNET.BVVM.Log;
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -40,46 +41,64 @@ namespace BTNET.VM.Views
     public partial class OrderDetailView : Window
     {
         private readonly OrderBase CurrentOrder;
-        internal readonly Ticker SymbolTickerFeed;
+        internal Ticker? SymbolTickerFeed = null;
 
         public OrderDetailView(OrderBase initialOrder)
         {
             CurrentOrder = Static.ManageStoredOrders.GetSingleOrderContextFromMemoryStorage(initialOrder);
             DataContext = CurrentOrder;
 
-            SymbolTickerFeed = Tickers.AddTicker(CurrentOrder.Symbol, BV.Enum.Owner.OrderDetail);
-            SymbolTickerFeed.TickerUpdated += TickerUpdated;
+            Task.Run(async () =>
+            {
+                SymbolTickerFeed = await Tickers.AddTicker(CurrentOrder.Symbol, BV.Enum.Owner.OrderDetail).ConfigureAwait(false);
+                SymbolTickerFeed.TickerUpdated += TickerUpdated;
+            }).ConfigureAwait(false);
 
             InitializeComponent();
         }
 
-        public void StopDetailTicker()
+        public Task StopDetailTicker()
         {
             if (SymbolTickerFeed != null)
             {
                 SymbolTickerFeed.TickerUpdated -= TickerUpdated;
                 SymbolTickerFeed.Owner.Remove(BV.Enum.Owner.OrderDetail);
-                SymbolTickerFeed.StopTicker();
+                SymbolTickerFeed.StopTicker().ConfigureAwait(false);
             }
 
             CurrentOrder.Helper?.BreakSettleLoop();
+
+            return Task.CompletedTask;
         }
 
         public void TickerUpdated(object sender, TickerResultEventArgs e)
         {
             try
             {
-                InvokeUI.CheckAccess(() =>
+                decimal settlepercent = 0;
+
+                if (CurrentOrder.Helper != null)
                 {
-                    if (CurrentOrder.Helper != null)
+                    string fuf = OrderHelper.Fulfilled(CurrentOrder.Quantity, CurrentOrder.QuantityFilled);
+                    decimal pnl = decimal.Round(OrderHelper.PnL(CurrentOrder, e.BestAsk, e.BestBid), App.DEFAULT_ROUNDING_PLACES);
+                    if (CurrentOrder.Side == BinanceAPI.Enums.OrderSide.Buy)
                     {
-                        CurrentOrder.Helper.Bid = e.BestBid;
-                        CurrentOrder.Helper.Ask = e.BestAsk;
+                        settlepercent = decimal.Round(CurrentOrder.Price + (CurrentOrder.CumulativeQuoteQuantityFilled / CurrentOrder.Quantity) * CurrentOrder.Helper.SettlePercent / 100, (int)CurrentOrder.Helper.PriceTickSizeScale);
+                    }
+                    else
+                    {
+                        settlepercent = decimal.Round(CurrentOrder.Price - (CurrentOrder.CumulativeQuoteQuantityFilled / CurrentOrder.Quantity) * CurrentOrder.Helper.SettlePercent / 100, (int)CurrentOrder.Helper.PriceTickSizeScale);
                     }
 
-                    CurrentOrder.Fulfilled = OrderHelper.Fulfilled(CurrentOrder.Quantity, CurrentOrder.QuantityFilled);
-                    CurrentOrder.Pnl = decimal.Round(OrderHelper.PnL(CurrentOrder, e.BestAsk, e.BestBid), App.DEFAULT_ROUNDING_PLACES);
-                });
+                    InvokeUI.CheckAccess(() =>
+                    {
+                        CurrentOrder.Pnl = pnl;
+                        CurrentOrder.Helper.Bid = e.BestBid;
+                        CurrentOrder.Helper.Ask = e.BestAsk;
+                        CurrentOrder.Helper.SettlePercentDecimal = settlepercent;
+                        CurrentOrder.Fulfilled = fuf;
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -99,8 +118,15 @@ namespace BTNET.VM.Views
 
         private void Window_Closed(object sender, System.EventArgs e)
         {
-            StopDetailTicker();
-            DataContext = null;
+            try
+            {
+                StopDetailTicker().ConfigureAwait(false);
+                DataContext = null;
+            }
+            catch (Exception ex)
+            {
+                WriteLog.Error(ex);
+            }
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)

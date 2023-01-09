@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BTNET.VM.ViewModels;
+using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Media.Imaging;
@@ -84,7 +85,7 @@ namespace BTNET.BVVM
 
             TrayNotifyIcon.Icon = Icon.ExtractAssociatedIcon(AppDomain.CurrentDomain.FriendlyName);
             TrayNotifyIcon.ContextMenuStrip = contextMenu;
-            TrayNotifyIcon.Text = "BinanceTrader.NET - v" + Core.Version;
+            TrayNotifyIcon.Text = MainViewModel.Product + " - v" + MainViewModel.Version;
             TrayNotifyIcon.Visible = true;
         }
 

@@ -23,8 +23,10 @@
 */
 
 using BTNET.BV.Enum;
+using BTNET.BVVM.Log;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace BTNET.BVVM.BT
 {
@@ -42,7 +44,7 @@ namespace BTNET.BVVM.BT
         /// </summary>
         /// <param name="symbol">symbol</param>
         /// <returns></returns>
-        public static Ticker AddTicker(string symbol, Owner currentOwner, bool allowMultiple = true)
+        public static Task<Ticker> AddTicker(string symbol, Owner currentOwner, bool allowMultiple = true)
         {
             lock (TickerLock)
             {
@@ -50,12 +52,12 @@ namespace BTNET.BVVM.BT
                 if (ticker != default)
                 {
                     ticker.Owner.Add(currentOwner, allowMultiple); // Add owner to existing ticker
-                    return ticker;
+                    return Task.FromResult(ticker);
                 }
 
                 ticker = new Ticker(symbol, currentOwner, allowMultiple);
                 SymbolTickers.Add(ticker);
-                return ticker;
+                return Task.FromResult(ticker);
             }
         }
 
@@ -86,9 +88,16 @@ namespace BTNET.BVVM.BT
                     return false;
                 }
 
-                if (symbol == Static.SelectedSymbolViewModel.SymbolView.Symbol)
+                if (!string.IsNullOrEmpty(Static.PreviousSymbolText))
                 {
-                    return false;
+                    if (symbol == Static.PreviousSymbolText)
+                    {
+                        if (Static.PreviousSymbolText == Static.SelectedSymbolViewModel.SymbolView.Symbol)
+                        {
+                            WriteLog.Info("Kept ticker because user changed modes but not symbols");
+                            return false;
+                        }
+                    }
                 }
 
                 return GetTicker(symbol)?.StopTicker(currentOwner) ?? false;

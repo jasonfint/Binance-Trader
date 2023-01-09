@@ -36,12 +36,10 @@ namespace BTNET.VM.Controls
         public MainViewControl()
         {
             InitializeComponent();
-            Core.MainVM.ResetListViewMaxHeightAsync().ConfigureAwait(false);
         }
 
         private void Browser_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            // Ignore Ctrl + S
             if (e.Key == Key.S && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
             {
                 e.Handled = true;
@@ -50,7 +48,6 @@ namespace BTNET.VM.Controls
 
         private void GridSplitter_DragDelta(object sender, System.Windows.Controls.Primitives.DragDeltaEventArgs e)
         {
-            Core.MainVM.ResetListViewMaxHeightAsync().ConfigureAwait(false);
             Core.VisibilityVM.OrderListHeight = ListViewX.ActualHeight;
         }
     }

@@ -53,8 +53,8 @@ namespace BTNET.BV.Base
                 {
                     if (!TradeVM.UseLimitSellBool)
                     {
-                        TradeAmountSell(Static.RealTimeUpdate.BestBidPrice, QuoteVM.ObserveQuoteOrderQuantityLocalSell);
-                        TradeVM.SymbolPriceSell = Static.RealTimeUpdate.BestBidPrice;
+                        TradeAmountSell(RealTimeVM.BidPrice, QuoteVM.ObserveQuoteOrderQuantityLocalSell);
+                        TradeVM.SymbolPriceSell = RealTimeVM.BidPrice;
                         return;
                     }
 
@@ -64,8 +64,8 @@ namespace BTNET.BV.Base
 
                 if (!TradeVM.UseLimitBuyBool)
                 {
-                    TradeAmountBuy(Static.RealTimeUpdate.BestAskPrice, QuoteVM.ObserveQuoteOrderQuantityLocalBuy);
-                    TradeVM.SymbolPriceBuy = Static.RealTimeUpdate.BestAskPrice;
+                    TradeAmountBuy(RealTimeVM.AskPrice, QuoteVM.ObserveQuoteOrderQuantityLocalBuy);
+                    TradeVM.SymbolPriceBuy = RealTimeVM.AskPrice;
                     return;
                 }
 

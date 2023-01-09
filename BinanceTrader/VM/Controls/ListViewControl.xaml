@@ -28,7 +28,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:BTNET.VM.Controls"
     xmlns:converters="clr-namespace:BTNET.BV.Converters"
-    xmlns:z="http://schemas.microsoft.com/xaml/behaviors"
     Name="ListViewC"
     AllowDrop="False">
 
@@ -53,14 +52,6 @@
         ScrollViewer.VerticalScrollBarVisibility="Hidden"
         SelectedItem="{Binding SelectedListItem}"
         HorizontalAlignment="Center">
-        <z:Interaction.Triggers>
-            <z:EventTrigger EventName="LostFocus">
-                <z:InvokeCommandAction Command="{Binding MainVM.LostFocusCommand}" />
-            </z:EventTrigger>
-            <z:EventTrigger EventName="GotFocus">
-                <z:InvokeCommandAction Command="{Binding MainVM.GotFocusCommand}" />
-            </z:EventTrigger>
-        </z:Interaction.Triggers>
         <ListView.Resources>
             <ItemsPanelTemplate x:Key="x">
                 <VirtualizingStackPanel />
@@ -68,7 +59,16 @@
         </ListView.Resources>
         <ListView.View>
             <GridView AllowsColumnReorder="False">
-                <GridViewColumn DisplayMemberBinding="{Binding TargetNullValue}" Width="{Binding VisibilityVM.OrderListWidthOffset}" />
+                <GridViewColumn DisplayMemberBinding="{Binding TargetNullValue}" Width="{Binding VisibilityVM.OrderListWidthOffset}">                    
+                </GridViewColumn>
+                <GridViewColumn
+                        Width="20">
+                    <GridViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <Image Source="{Binding StatusImage, UpdateSourceTrigger=PropertyChanged}" Width="10" Height="10" HorizontalAlignment="Center" />
+                        </DataTemplate>
+                    </GridViewColumn.CellTemplate>
+                </GridViewColumn>
                 <GridViewColumn
                     Width="35"
                     DisplayMemberBinding="{Binding Side}"
@@ -99,11 +99,11 @@
                     Header="ITD Base" />
                 <GridViewColumn
                     Width="{Binding VisibilityVM.InterestWidth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                    DisplayMemberBinding="{Binding InterestPerHour, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource tickScale}}"
+                    DisplayMemberBinding="{Binding InterestPerHour, UpdateSourceTrigger=PropertyChanged, StringFormat='\{0:N8\}'}"
                     Header="Interest/PH" />
                 <GridViewColumn
                     Width="{Binding VisibilityVM.InterestWidth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                    DisplayMemberBinding="{Binding InterestPerDay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource tickScale}}"
+                    DisplayMemberBinding="{Binding InterestPerDay, UpdateSourceTrigger=PropertyChanged, StringFormat='\{0:N8\}'}"
                     Header="Interest/PD" />
                 <GridViewColumn
                     Width="105"

@@ -63,6 +63,8 @@ namespace BTNET.BVVM
 
         public static readonly object OrderUpdateLock = new object();
 
+        public bool LastChanceStop { get; set; } = false;
+
         /// <summary>
         /// The last time orders were updated, Needs to be reset when mode/symbol changes
         /// </summary>
@@ -80,8 +82,6 @@ namespace BTNET.BVVM
             }
         }
 
-        public static bool IsUpdatingOrders { get; set; }
-
         public static ConcurrentQueue<OrderUpdate> DataEventWaiting { get; } = new();
 
         public void AddNewOrderUpdateEventsToQueue(BinanceStreamOrderUpdate order, TradingMode tradingMode)
@@ -97,31 +97,32 @@ namespace BTNET.BVVM
         {
             try
             {
-                // Load Orders From Memory
                 await FindMissingOrdersInMemoryAsync(symbol).ConfigureAwait(false);
+                await UpdateFromOrderUpdatesAsync().ConfigureAwait(false);
 
-                // Add OnOrderUpdates that are recieved in "real time"
-                await UpdateFromOrderUpdatesAsync().ConfigureAwait(false); // Added To Memory Storage
-
-                // Remove Deleted Orders
-                if (Deleted.IsHideTriggered)
+                if (Hidden.IsHideTriggered)
                 {
-                    Deleted.IsHideTriggered = false;
+                    Hidden.IsHideTriggered = false;
+                    await Hidden.EnumerateHiddenOrdersAsync().ConfigureAwait(false);
+                }
+
+                if (Hidden.IsStatusTriggered)
+                {
+                    Hidden.IsStatusTriggered = false;
 
                     lock (MainOrders.OrderUpdateLock)
                     {
-                        Deleted.EnumerateHiddenOrdersAsync(Current).ConfigureAwait(false);
+                        foreach (OrderBase o in Current)
+                        {
+                            o.ScraperStatus = o.ScraperStatus;
+                        }
                     }
                 }
 
-                // Update last 200 orders from server
-                // Happens first run and then once every 5 minutes just in case
                 var time = DateTime.UtcNow;
                 if (!Static.IsInvalidSymbol() && time > (LastRun + TimeSpan.FromMinutes(SERVER_ORDER_DELAY_MINS)))
                 {
                     LastRun = time;
-
-                    // Added to Memory Storage
                     await UpdateOrdersFromServerAsync().ConfigureAwait(false);
                 }
             }
@@ -129,71 +130,61 @@ namespace BTNET.BVVM
             {
                 WriteLog.Error("Failure while getting Orders: ", ex);
             }
-            finally
-            {
-                IsUpdatingOrders = false;
-            }
-        }
-
-        public OrderBase? GetFirstOrder()
-        {
-            lock (MainOrders.OrderUpdateLock)
-            {
-                if (Current.Count > 0)
-                {
-                    return Current[0];
-                }
-            }
-
-            return null;
         }
 
         private Task FindMissingOrdersInMemoryAsync(string symbol)
         {
-            bool updated = false;
-            List<OrderBase> temp;
-            List<OrderBase>? OrderUpdate = Static.ManageStoredOrders.GetCurrentSymbolMemoryStoredOrders(symbol)?.ToList();
-
-            if (OrderUpdate != null)
+            lock (MainOrders.OrderUpdateLock)
             {
-                lock (MainOrders.OrderUpdateLock)
-                {
-                    temp = Current.ToList();
+                IEnumerable<OrderBase>? OrderUpdate = Static.ManageStoredOrders.GetCurrentSymbolMemoryStoredOrders(symbol);
 
-                    if (temp.Count == 0)
+                if (OrderUpdate != null)
+                {
+                    if (OrderUpdate.Any())
                     {
-                        temp = OrderUpdate;
-                        if (temp.Count > 0)
+                        bool updated = false;
+                        List<OrderBase> temp = new();
+
+
+                        temp = Current.ToList();
+                        if (temp.Count == 0)
                         {
-                            updated = true;
-                        }
-                    }
-                    else
-                    {
-                        foreach (var order in OrderUpdate)
-                        {
-                            var exists = temp.Where(t => t.OrderId == order.OrderId).Any();
-                            if (!exists)
+                            temp = OrderUpdate.ToList();
+                            if (temp.Count > 0)
                             {
-                                temp.Add(order);
                                 updated = true;
-#if DEBUG
-                                WriteLog.Info("Dequeued: " + order.OrderId + " | " + order.Quantity + "| " + order.Type + " | " + order.Status);
-#endif
                             }
                         }
-                    }
-
-                    if (updated)
-                    {
-                        InvokeUI.CheckAccess(() =>
+                        else
                         {
-                            Current = new ObservableCollection<OrderBase>(temp.OrderByDescending(d => d.CreateTime));
-                        });
+                            foreach (var order in OrderUpdate)
+                            {
+                                var exists = temp.Where(t => t.OrderId == order.OrderId).Any();
+                                if (!exists)
+                                {
+                                    temp.Add(order);
+                                    updated = true;
+#if DEBUG
+                                    WriteLog.Info("Dequeued: " + order.OrderId + " | " + order.Quantity + "| " + order.Type + " | " + order.Status);
+#endif
+                                }
+                            }
+                        }
+
+                        if (updated && !LastChanceStop)
+                        {
+                            var orders = new ObservableCollection<OrderBase>(temp.OrderByDescending(d => d.CreateTime));
+
+                            InvokeUI.CheckAccess(() =>
+                            {
+                                Current = orders;
+                            });
 
 #if DEBUG
-                        WriteLog.Info("Updated Orders: " + OrderUpdate.Count + "/" + temp.Count);
+                            WriteLog.Info("Updated Orders: " + OrderUpdate.Count() + "/" + temp.Count);
 #endif
+                        }
+
                     }
                 }
             }
@@ -203,8 +194,6 @@ namespace BTNET.BVVM
 
         private async Task UpdateOrdersFromServerAsync()
         {
-            // Currently Selected Symbol
-
             if (Core.MainVM.IsSymbolSelected)
             {
                 WebCallResult<IEnumerable<BinanceOrderBase>>? webCallResult;
@@ -220,62 +209,62 @@ namespace BTNET.BVVM
                     _ => null,
                 }) != null && webCallResult.Success)
                 {
-                    await EnumerateOrdersFromServerAsync(webCallResult).ConfigureAwait(false);
+                    await EnumerateOrdersFromServerAsync(webCallResult.Data).ConfigureAwait(false);
                 }
             }
         }
 
-        private Task EnumerateOrdersFromServerAsync(WebCallResult<IEnumerable<BinanceOrderBase>> webCallResult)
+        private Task EnumerateOrdersFromServerAsync(IEnumerable<BinanceOrderBase> webCallResult)
         {
-            // Currently Selected Symbol
             List<OrderBase> OrderUpdate = new();
 
-            foreach (var o in webCallResult.Data)
+            if (webCallResult.Count() > 0)
             {
-                OrderUpdate.Add(Order.NewOrderFromServer(o, Static.CurrentTradingMode));
+                foreach (BinanceOrderBase o in webCallResult)
+                {
+                    OrderUpdate.Add(Order.NewOrderFromServer(o, Static.CurrentTradingMode));
+                }
             }
 
-            Static.ManageStoredOrders.AddOrderUpdatesToMemoryStorage(OrderUpdate, false);
+            if (OrderUpdate.Count > 0)
+            {
+                foreach (var order in OrderUpdate)
+                {
+                    Static.ManageStoredOrders.AddSingleOrderToMemoryStorage(order, false);
+                }
+            }
 
             return Task.CompletedTask;
         }
 
         private Task UpdateFromOrderUpdatesAsync()
         {
-            // Any Symbol
-            if (StoredExchangeInfo.Get() == null)
+            if (StoredExchangeInfo.IsNull())
             {
                 return Task.CompletedTask;
             }
 
             try
             {
-                var start = DateTime.UtcNow.Ticks;
-                while (DataEventWaiting.TryPeek(out _) && Loop.Delay(start, DELAY_TIME_MS, EXPIRE_TIME_MS, (() =>
+                while (DataEventWaiting.TryDequeue(out OrderUpdate NewOrder))
                 {
-                    OrderUpdateError();
-                })).Result)
-                {
-                    if (DataEventWaiting.TryDequeue(out OrderUpdate NewOrder))
+                    switch (NewOrder.Update.Status)
                     {
-                        switch (NewOrder.Update.Status)
-                        {
-                            case OrderStatus.Canceled:
-                                {
-                                    WriteLog.Info("Added Cancelled Order to Deleted List: " + NewOrder.Update.OrderId);
-                                    continue;
-                                }
-                            case OrderStatus.Rejected:
-                                {
-                                    WriteLog.Error($"Order: " + NewOrder.Update.OrderId + " was Rejected OnOrderUpdate: " + NewOrder.Update.RejectReason);
-                                    continue;
-                                }
-                            default:
-                                {
-                                    ProcessOrder(NewOrder);
-                                    continue;
-                                }
-                        }
+                        case OrderStatus.Canceled:
+                            {
+                                WriteLog.Info("Added Cancelled Order to Deleted List: " + NewOrder.Update.OrderId);
+                                continue;
+                            }
+                        case OrderStatus.Rejected:
+                            {
+                                WriteLog.Error($"Order: " + NewOrder.Update.OrderId + " was Rejected OnOrderUpdate: " + NewOrder.Update.RejectReason);
+                                continue;
+                            }
+                        default:
+                            {
+                                ProcessOrder(NewOrder);
+                                continue;
+                            }
                     }
                 }
             }
@@ -324,11 +313,6 @@ namespace BTNET.BVVM
                 // New Orders with no collisions
                 SaveAndAddOrder(update.Update, orderPrice, update.TradingMode);
             }
-        }
-
-        private void OrderUpdateError()
-        {
-            WriteLog.Error("Order Updates got stuck in a loop and it was manually broken");
         }
 
         public Task UpdateTradeFeeAsync()
@@ -381,21 +365,25 @@ namespace BTNET.BVVM
 
                 foreach (var order in Current)
                 {
+                    var pnl = decimal.Round(OrderHelper.PnL(order, RealTimeVM.AskPrice, RealTimeVM.BidPrice), App.DEFAULT_ROUNDING_PLACES);
+
                     InvokeUI.CheckAccess(() =>
                     {
-                        if (_currentInterestRate > 0)
-                        {
-                            var dailyInterestRate = _currentInterestRate;
-                            var interestPerHour = OrderHelper.InterestPerHour(order.QuantityFilled, dailyInterestRate);
-                            var interestToDate = OrderHelper.InterestToDate(interestPerHour, InterestTimeStamp(order.CreateTime, order.ResetTime));
-                            order.InterestPerHour = interestPerHour;
-                            order.InterestPerDay = OrderHelper.InterestPerDay(order.QuantityFilled, dailyInterestRate);
-                            order.InterestToDate = interestToDate;
-                            order.InterestToDateQuote = OrderHelper.InterestToDateQuote(interestToDate, order.Price);
-                        }
-
-                        order.Pnl = decimal.Round(OrderHelper.PnL(order, Static.RealTimeUpdate.BestAskPrice, Static.RealTimeUpdate.BestBidPrice), App.DEFAULT_ROUNDING_PLACES);
+                        order.Pnl = pnl;
                     });
+
+                    if (_currentInterestRate > 0)
+                    {
+                        var dailyInterestRate = _currentInterestRate;
+                        var interestPerHour = OrderHelper.InterestPerHour(order.QuantityFilled, dailyInterestRate);
+                        var interestToDate = OrderHelper.InterestToDate(interestPerHour, InterestTimeStamp(order.CreateTime, order.ResetTime));
+                        var interestPerDay = OrderHelper.InterestPerDay(order.QuantityFilled, dailyInterestRate);
+                        var interestToDateQuote = OrderHelper.InterestToDateQuote(interestToDate, order.Price);
+                        order.InterestPerHour = interestPerHour;
+                        order.InterestPerDay = interestPerDay;
+                        order.InterestToDate = interestToDate;
+                        order.InterestToDateQuote = interestToDateQuote;
+                    }
 
                     combinedTotal += order.CumulativeQuoteQuantityFilled;
                     combinedTotalBase += order.QuantityFilled;
@@ -436,18 +424,13 @@ namespace BTNET.BVVM
             order.TimeInForce = OrderHelper.TIF(d.TimeInForce.ToString());
             order.UpdateTime = d.UpdateTime;
             order.Fulfilled = OrderHelper.Fulfilled(d.Quantity, d.QuantityFilled);
+            order.CreateTime = d.CreateTime;
+            order.UpdateTime = d.UpdateTime;
 #if DEBUG
             WriteLog.Info("Updated Order: " + order.CreateTime);
 #endif
             Static.ManageStoredOrders.AddSingleOrderToMemoryStorage(order, false);
             NotifyVM.Notification("Updated Order: " + order.OrderId + "Filled:" + order.Fulfilled, Static.Green);
-        }
-
-        public void HideOrder(BinanceStreamOrderUpdate data, decimal convertedPrice, TradingMode tradingMode)
-        {
-            OrderBase OrderToAdd = Order.NewOrderOnUpdate(data, convertedPrice, tradingMode);
-
-            Deleted.HideOrder(OrderToAdd);
         }
 
         public void SaveAndAddOrder(BinanceStreamOrderUpdate data, decimal convertedPrice, TradingMode tradingMode)

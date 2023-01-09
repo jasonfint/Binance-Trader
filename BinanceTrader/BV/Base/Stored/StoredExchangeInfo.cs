@@ -94,6 +94,14 @@ namespace BTNET.BV.Base
             }
         }
 
+        public static bool IsNull()
+        {
+            lock (Lock)
+            {
+                return ExchangeInfo == null;
+            }
+        }
+
         #endregion [ Get ]
 
         #region [ Set ]

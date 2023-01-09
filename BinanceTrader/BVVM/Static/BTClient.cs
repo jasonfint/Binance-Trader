@@ -44,10 +44,6 @@ namespace BTNET.BVVM
 
         public void DisposeClients()
         {
-            _ = SocketClient?.UnsubscribeAllAsync();
-            _ = SocketSymbolTicker?.UnsubscribeAllAsync();
-            _ = SocketWatchlistTicker?.UnsubscribeAllAsync();
-
             Local?.Dispose();
             SocketClient?.Dispose();
             SocketSymbolTicker?.Dispose();

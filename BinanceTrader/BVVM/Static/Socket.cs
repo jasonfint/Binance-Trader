@@ -41,6 +41,8 @@ namespace BTNET.BVVM
 {
     internal class Socket : Core
     {
+        protected static Ticker? SymbolTicker { get; set; }
+
         public static void OnAccountUpdateSpot(DataEvent<BinanceStreamPositionsUpdate> data)
         {
             if (data != null)
@@ -204,7 +206,6 @@ namespace BTNET.BVVM
         {
             OnOrderUpdateDigest(data, TradingMode.Spot);
         }
-
         public static void OnOrderUpdateMargin(DataEvent<BinanceStreamOrderUpdate> data)
         {
             OnOrderUpdateDigest(data, TradingMode.Margin);
@@ -222,6 +223,7 @@ namespace BTNET.BVVM
         /// </summary>
         /// <param name="data">The data from the Order Update</param>
         public static void OnOrderUpdateDigest(DataEvent<BinanceStreamOrderUpdate> data, TradingMode tradingMode)
+
         {
             var d = data.Data;
             try
@@ -311,11 +313,11 @@ namespace BTNET.BVVM
                             var symbolwl = WatchListVM.WatchListItems.SingleOrDefault(p => p.WatchlistSymbol == ud.Symbol);
                             if (symbolwl != null)
                             {
-                                symbolwl.WatchlistClose = ud.PrevDayClosePrice;
+                                symbolwl.WatchlistClose = ud.PrevDayClosePrice.ToString(symbolwl.WatchlistStringFormat);
                                 symbolwl.WatchlistChange = ud.PriceChangePercent;
-                                symbolwl.WatchlistHigh = ud.HighPrice;
-                                symbolwl.WatchlistLow = ud.LowPrice;
-                                symbolwl.WatchlistPrice = ud.LastPrice;
+                                symbolwl.WatchlistHigh = ud.HighPrice.ToString(symbolwl.WatchlistStringFormat);
+                                symbolwl.WatchlistLow = ud.LowPrice.ToString(symbolwl.WatchlistStringFormat);
+                                symbolwl.WatchlistPrice = ud.LastPrice.ToString(symbolwl.WatchlistStringFormat);
                                 symbolwl.WatchlistVolume = ud.BaseVolume.Normalize();
                             }
                         }
@@ -338,37 +340,32 @@ namespace BTNET.BVVM
 
         public static void TickerUpdated(object sender, TickerResultEventArgs e)
         {
-            Static.RealTimeUpdate.BestAskPrice = e.BestAsk;
-            Static.RealTimeUpdate.BestAskQuantity = e.BestAskQuantity;
-            Static.RealTimeUpdate.BestBidPrice = e.BestBid;
-            Static.RealTimeUpdate.BestBidQuantity = e.BestBidQuantity;
+            RealTimeVM.BidPrice = e.BestBid;
+            RealTimeVM.BidQuantity = e.BestBidQuantity;
+            RealTimeVM.AskPrice = e.BestAsk;
+            RealTimeVM.AskQuantity = e.BestAskQuantity;
         }
 
-        public static Task CurrentSymbolTickerAsync()
+        public static async Task CurrentSymbolTickerAsync()
         {
-            if (Static.PreviousSymbol != null)
-            {
-                var previousSymbol = Tickers.GetTicker(Static.PreviousSymbol.SymbolView.Symbol);
-                if (previousSymbol != null)
-                {
-                    previousSymbol.TickerUpdated -= TickerUpdated;
-                }
+            RealTimeVM.Clear();
 
-                Tickers.RemoveOwnership(Static.PreviousSymbol.SymbolView.Symbol, Owner.CurrentSymbol);
+            if (SymbolTicker != null)
+            {
+                SymbolTicker.TickerUpdated -= TickerUpdated;
             }
 
-            Static.RealTimeUpdate.BestAskPrice = 0;
-            Static.RealTimeUpdate.BestAskQuantity = 0;
-            Static.RealTimeUpdate.BestBidPrice = 0;
-            Static.RealTimeUpdate.BestBidQuantity = 0;
-
-            var newSymbol = Tickers.AddTicker(Static.SelectedSymbolViewModel.SymbolView.Symbol, Owner.CurrentSymbol, false);
-            if (newSymbol != null)
+            if (!string.IsNullOrWhiteSpace(Static.PreviousSymbolText))
             {
-                newSymbol.TickerUpdated += TickerUpdated;
+                Tickers.RemoveOwnership(Static.PreviousSymbolText, Owner.CurrentSymbol);
+                Static.PreviousSymbolText = string.Empty;
             }
 
-            return Task.CompletedTask;
+            SymbolTicker = await Tickers.AddTicker(Static.SelectedSymbolViewModel.SymbolView.Symbol, Owner.CurrentSymbol, false).ConfigureAwait(false);
+            if (SymbolTicker != null)
+            {
+                SymbolTicker.TickerUpdated += TickerUpdated;
+            }
         }
     }
 }

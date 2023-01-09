@@ -23,10 +23,8 @@
 */
 
 using BinanceAPI.Authentication;
-using BinanceAPI.Objects;
 using BinanceAPI.Options;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Security;
 using static BinanceAPI.TheLog;
 
@@ -41,9 +39,6 @@ namespace BinanceAPI.ClientBase
         private static object idLock = new();
         private static ApiEndpoint _changeEndpoint = ApiEndpoint.ONE;
         protected private static AuthenticationProvider? _authProvider;
-
-        [AllowNull]
-        protected private ApiProxy ApiProxy;
 
         /// <summary>
         /// Has the the Authentication Provider been set
@@ -67,12 +62,7 @@ namespace BinanceAPI.ClientBase
                 throw new InvalidOperationException("You must set your API Keys with BaseClient.SetAuthentication() first");
             }
 
-            ApiProxy = options.Proxy;
-
             ClientLog?.Info($"Client configuration: {options}, BinanceAPI.NET: v{GetType().Assembly.GetName().Version}");
-#if DEBUG
-            Json.OutputOriginalData = options.OutputOriginalData;
-#endif
         }
 
         /// <summary>

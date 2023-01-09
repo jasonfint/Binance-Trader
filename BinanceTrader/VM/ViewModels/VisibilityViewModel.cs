@@ -40,9 +40,15 @@ namespace BTNET.VM.ViewModels
         private double panelMarginInfoLeft = 113;
         private double panelMarginInfoTop = -170;
         private double panelBreakdownLeft = 10;
-        private double panelBreakdownTop = -265;
+        private double panelBreakdownTop = -279;
         private double panelInfoBoxLeft = 10;
-        private double panelInfoBoxTop = -370;
+        private double panelInfoBoxTop = -385;
+        private double panelTradeInfoLeft = 10;
+        private double panelTradeInfoTop = -578;
+        private double panelScraperLeft = 10;
+        private double panelScraperTop = -805;
+        private double insightsPanelLeft = 566;
+        private double insightsPanelTop = -577;
 
         private const int INTEREST_WIDTH_DEFAULT = 105;
         private const int PADDING_DEFAULT = 100;
@@ -57,7 +63,7 @@ namespace BTNET.VM.ViewModels
         private bool orderSettingsVisibility = true;
         private double orderListWidthOffset;
         private double orderListHeight = ORDER_LIST_DEFAULT_HEIGHT;
-        private double orderListHeightMax = 200;
+        private double watchListHeight;
 
         public ICommand? OrderSettingsCommand { get; set; }
 
@@ -66,22 +72,22 @@ namespace BTNET.VM.ViewModels
             OrderSettingsCommand = new DelegateCommand(OrderSettingsToggle);
         }
 
+        public double WatchListHeight
+        {
+            get => watchListHeight;
+            set
+            {
+                watchListHeight = value;
+                PropChanged();
+            }
+        }
+
         public double OrderListHeight
         {
             get => orderListHeight;
             set
             {
                 orderListHeight = value;
-                PropChanged();
-            }
-        }
-
-        public double OrderListHeightMax
-        {
-            get => orderListHeightMax;
-            set
-            {
-                orderListHeightMax = value;
                 PropChanged();
             }
         }
@@ -142,6 +148,66 @@ namespace BTNET.VM.ViewModels
             set
             {
                 orderSettingsVisibility = value;
+                PropChanged();
+            }
+        }
+
+        public double InsightsPanelLeft
+        {
+            get => insightsPanelLeft; // 646
+            set
+            {
+                insightsPanelLeft = value;
+                PropChanged();
+            }
+        }
+
+        public double InsightsPanelTop
+        {
+            get => insightsPanelTop; // -577
+            set
+            {
+                insightsPanelTop = value;
+                PropChanged();
+            }
+        }
+
+        public double ScraperLeft
+        {
+            get => panelScraperLeft;
+            set
+            {
+                panelScraperLeft = value;
+                PropChanged();
+            }
+        }
+
+        public double ScraperTop
+        {
+            get => panelScraperTop; // -805
+            set
+            {
+                panelScraperTop = value;
+                PropChanged();
+            }
+        }
+
+        public double TradeInfoLeft
+        {
+            get => panelTradeInfoLeft;
+            set
+            {
+                panelTradeInfoLeft = value;
+                PropChanged();
+            }
+        }
+
+        public double TradeInfoTop
+        {
+            get => panelTradeInfoTop;
+            set
+            {
+                panelTradeInfoTop = value;
                 PropChanged();
             }
         }

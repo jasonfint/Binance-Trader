@@ -27,11 +27,14 @@ using BTNET.BVVM;
 using BTNET.VM.ViewModels;
 using Newtonsoft.Json;
 using System;
+using System.Windows.Media;
 
 namespace BTNET.BV.Base
 {
     public class OrderBase : Core
     {
+        private static readonly string CAN_HIDE = "CanHide";
+
         private OrderHelperViewModel? helper;
 
         private DateTime resetTime = DateTime.MinValue;
@@ -63,6 +66,8 @@ namespace BTNET.BV.Base
         private decimal cumulativeQuoteQuantityFilled;
         private bool isOrderHidden;
         private bool cancelled;
+        private bool scraperStatus;
+        private bool purchasedByScraper;
 
         public bool IsOrderHidden
         {
@@ -334,13 +339,58 @@ namespace BTNET.BV.Base
         }
 
         [JsonIgnore]
+        public ImageSource StatusImage
+        {
+            get
+            {
+                if (ScraperStatus)
+                {
+                    return App.ImageOne;
+                }
+                else if (PurchasedByScraper)
+                {
+                    return App.ImageTwo;
+                }
+                else
+                {
+                    return null!;
+                }
+            }
+
+            set => PropChanged();
+        }
+
+        [JsonIgnore]
+        public bool ScraperStatus
+        {
+            get => scraperStatus;
+            set
+            {
+                scraperStatus = value;
+                PropChanged();
+                StatusImage = StatusImage;
+            }
+        }
+
+        public bool PurchasedByScraper
+        {
+            get => purchasedByScraper;
+            set
+            {
+                purchasedByScraper = value;
+                PropChanged();
+                StatusImage = StatusImage;
+            }
+        }
+
+        [JsonIgnore]
         public bool CanCancel
         {
             get { return Status is OrderStatus.New or OrderStatus.PartiallyFilled && Type != OrderType.Market && !Cancelled; }
             set
             {
                 PropChanged();
-                PropChanged("CanHide");
+                PropChanged(CAN_HIDE);
             }
         }
 
@@ -365,13 +415,15 @@ namespace BTNET.BV.Base
         }
 
         [JsonIgnore]
+        public string TargetNullValue => "";
+
+        [JsonIgnore]
         public OrderHelperViewModel? Helper
         {
             get => helper;
             set
             {
                 helper = value;
-                PropChanged();
             }
         }
     }

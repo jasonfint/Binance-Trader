@@ -29,7 +29,6 @@ using BinanceAPI.Sockets;
 using BinanceAPI.SocketSubClients;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -69,33 +68,19 @@ namespace BinanceAPI.ClientHosts
             Spot = new BinanceSocketClientSpot(this, options);
 
             if (options == null)
+            {
                 throw new ArgumentNullException(nameof(options));
+            }
 
             MaxReconnectTries = options.MaxReconnectTries;
-            MaxConcurrentResubscriptionsPerSocket = options.MaxConcurrentResubscriptionsPerSocket;
 
             StartSocketLog(options.LogPath, options.LogLevel, options.LogToConsole);
         }
 
         /// <summary>
-        /// List of socket connections currently connecting/connected
-        /// </summary>
-        protected internal ConcurrentDictionary<int, BaseSocketClient> AllSockets = new();
-
-        /// <summary>
-        /// The max amount of concurrent socket connections
-        /// </summary>
-        public int MaxSocketConnections { get; protected set; } = 9999;
-
-        /// <summary>
         /// The maximum number of times to try to reconnect
         /// </summary>
         public int? MaxReconnectTries { get; protected set; }
-
-        /// <summary>
-        /// Max number of concurrent resubscription tasks per socket after reconnecting a socket
-        /// </summary>
-        public int MaxConcurrentResubscriptionsPerSocket { get; protected set; }
 
         /// <summary>
         /// Set the default options to be used when creating new socket clients
@@ -105,17 +90,17 @@ namespace BinanceAPI.ClientHosts
         {
             DefaultOptions = options;
         }
-
-        internal Task<CallResult<UpdateSubscription>> SubscribeInternal<T>(string url, IEnumerable<string> topics, Action<DataEvent<T>> onData)
+        internal Task<CallResult<BaseSocketClient>> SubscribeInternal<T>(string url, IEnumerable<string> topics, Action<DataEvent<T>> onData, bool userStream)
         {
-            var request = new BinanceSocketRequest
+            BinanceSocketRequest request = new BinanceSocketRequest
             {
                 Method = "SUBSCRIBE",
                 Params = topics.ToArray(),
                 Id = NextId()
             };
 
-            return SubscribeAsync(url, request, false, onData, this);
+
+            return SubscribeAsync(url, request, false, onData, this, userStream);
         }
 
         /// <summary>
@@ -128,17 +113,51 @@ namespace BinanceAPI.ClientHosts
         /// <param name="dataHandler">The handler of update data</param>
         /// <param name="host">Socket Host</param>
         /// <returns></returns>
-        protected Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(string url, object request, bool authenticated, Action<DataEvent<T>> dataHandler, SocketClientHost host)
+        protected Task<CallResult<BaseSocketClient>> SubscribeAsync<T>(string url, BinanceSocketRequest request, bool authenticated, Action<DataEvent<T>> dataHandler, SocketClientHost host, bool userStream)
         {
             // Create Socket
-            BaseSocketClient socketConnection = new BaseSocketClient(url, host, ApiProxy);
-            socketConnection.UnhandledMessage += HandleUnhandledMessage;
+            BaseSocketClient socketConnection = new BaseSocketClient(url, host);
 
-            // Create Subscription
-            SocketSubscription subscription = AddSubscription(request, true, socketConnection, dataHandler);
-            subscription.Confirmed = true;
+            void InternalHandlerUserStream(JToken messageEvent)
+            {
+                if (typeof(T) == typeof(string))
+                {
+                    var stringData = (T)Convert.ChangeType(messageEvent.ToString(), typeof(T));
 
-            return Task.FromResult(new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription), null));
+                    dataHandler(new DataEvent<T>(stringData, null));
+                    return;
+                }
+            }
+
+
+            void InternalHandler(JToken messageEvent)
+            {
+                var desResult = Json.Deserialize<T>(messageEvent);
+
+                if (!desResult)
+                {
+#if DEBUG
+                    SocketLog?.Warning($"Socket {request.Id} Failed to deserialize data into type {typeof(T)}: {desResult.Error}");
+#endif
+                    return;
+                }
+
+                dataHandler(new DataEvent<T>(desResult.Data, null));
+            }
+
+            socketConnection.Request = request;
+            socketConnection.IsConfirmed = true;
+
+            if (userStream)
+            {
+                socketConnection.MessageHandler = InternalHandlerUserStream;
+            }
+            else
+            {
+                socketConnection.MessageHandler = InternalHandler;
+            }
+
+            return Task.FromResult(new CallResult<BaseSocketClient>(socketConnection, null));
         }
 
         /// <summary>
@@ -148,13 +167,15 @@ namespace BinanceAPI.ClientHosts
         /// <param name="request">The request to send, will be serialized to json</param>
         /// <param name="subscription">The subscription the request is for</param>
         /// <returns></returns>
-        protected internal async Task<CallResult<bool>> SubscribeAndWaitAsync(BaseSocketClient baseSocketClient, object request, SocketSubscription subscription)
+        protected internal async Task<CallResult<bool>> SubscribeAndWaitAsync(BaseSocketClient baseSocketClient, BinanceSocketRequest request)
         {
             CallResult<object>? callResult = null;
             await baseSocketClient.SendAndWaitAsync(request, TimeSpan.FromSeconds(3), data => HandleSubscriptionResponse(request, data, out callResult)).ConfigureAwait(false);
 
             if (callResult?.Success == true)
-                subscription.Confirmed = true;
+            {
+                baseSocketClient.IsConfirmed = true;
+            }
 
             return new CallResult<bool>(callResult?.Success ?? false, callResult == null ? new ServerError("No response on subscription request received") : callResult.Error);
         }
@@ -170,7 +191,7 @@ namespace BinanceAPI.ClientHosts
         /// <param name="message">JToken</param>
         /// <param name="callResult">The interpretation (null if message wasn't a response to the request)</param>
         /// <returns>True if the message was a response to the subscription request</returns>
-        public bool HandleSubscriptionResponse(object request, JToken message, out CallResult<object>? callResult)
+        public bool HandleSubscriptionResponse(BinanceSocketRequest request, JToken message, out CallResult<object>? callResult)
         {
             callResult = null;
             if (message.Type != JTokenType.Object)
@@ -180,8 +201,7 @@ namespace BinanceAPI.ClientHosts
             if (id == null)
                 return false;
 
-            var bRequest = (BinanceSocketRequest)request;
-            if ((int)id != bRequest.Id)
+            if ((int)id != request.Id)
                 return false;
 
             var result = message["result"];
@@ -209,55 +229,56 @@ namespace BinanceAPI.ClientHosts
         /// <param name="message">The received data</param>
         /// <param name="request">The subscription request</param>
         /// <returns>True if the message is for the subscription which sent the request</returns>
-        public bool MessageMatchesHandler(JToken message, object? request)
+        public bool MessageMatchesHandler(JToken message, BinanceSocketRequest request)
         {
-            if (request == null)
-                return false;
-
             if (message.Type != JTokenType.Object)
                 return false;
 
-            var bRequest = (BinanceSocketRequest)request;
             var stream = message["stream"];
             if (stream == null)
                 return false;
 
-            return bRequest.Params.Contains(stream.ToString());
+            return request.Params.Contains(stream.ToString());
         }
 
         /// <summary>
         /// Needs to unsubscribe a subscription, typically by sending an unsubscribe request.
         /// </summary>
         /// <param name="socketClient">The connection on which to unsubscribe</param>
-        /// <param name="subscription">The subscription to unsubscribe</param>
         /// <returns></returns>
-        public async Task<bool> UnsubscribeAsync(BaseSocketClient socketClient, SocketSubscription subscription)
+        public async Task<bool> UnsubscribeAsync(BaseSocketClient socketClient, BinanceSocketRequest Request)
         {
             var returnresult = false;
-            var topics = ((BinanceSocketRequest)subscription.Request!).Params;
-
             var unsub = new BinanceSocketRequest
             {
                 Method = "UNSUBSCRIBE",
-                Params = topics,
-                Id = NextId()
+                Params = Request.Params,
+                Id = Request.Id,
             };
 
             if (!socketClient.IsOpen)
-                return true;
+            {
+                return false;
+            }
 
             await socketClient.SendAndWaitAsync(unsub, TimeSpan.FromSeconds(3),
                 data =>
                 {
                     if (data.Type != JTokenType.Object)
+                    {
                         return false;
+                    }
 
                     var id = data["id"];
                     if (id == null)
+                    {
                         return false;
+                    }
 
                     if ((int)id != unsub.Id)
+                    {
                         return false;
+                    }
 
                     var result = data["result"];
                     if (result?.Type == JTokenType.Null)
@@ -266,59 +287,9 @@ namespace BinanceAPI.ClientHosts
                         return true;
                     }
 
-                    return true;
+                    return false;
                 }).ConfigureAwait(false);
             return returnresult;
-        }
-
-        /// <summary>
-        /// Add a subscription to a connection
-        /// </summary>
-        /// <typeparam name="T">The type of data the subscription expects</typeparam>
-        /// <param name="request">The request of the subscription</param>
-        /// <param name="userSubscription">Whether or not this is a user subscription (counts towards the max amount of handlers on a socket)</param>
-        /// <param name="connection">The socket connection the handler is on</param>
-        /// <param name="dataHandler">The handler of the data received</param>
-        /// <returns></returns>
-        protected SocketSubscription AddSubscription<T>(object request, bool userSubscription, BaseSocketClient connection, Action<DataEvent<T>> dataHandler)
-        {
-            void InternalHandler(MessageEvent messageEvent)
-            {
-                if (typeof(T) == typeof(string))
-                {
-                    var stringData = (T)Convert.ChangeType(messageEvent.JsonData.ToString(), typeof(T));
-#if DEBUG
-                    dataHandler(new DataEvent<T>(stringData, null, Json.OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp));
-#else
-                    dataHandler(new DataEvent<T>(stringData, null, null, messageEvent.ReceivedTimestamp));
-#endif
-                    return;
-                }
-
-                var desResult = Json.Deserialize<T>(messageEvent.JsonData, false);
-                if (!desResult)
-                {
-                    SocketLog?.Warning($"Socket {connection.Id} Failed to deserialize data into type {typeof(T)}: {desResult.Error}");
-                    return;
-                }
-#if DEBUG
-                dataHandler(new DataEvent<T>(desResult.Data, null, Json.OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp));
-#else
-                dataHandler(new DataEvent<T>(desResult.Data, null, null, messageEvent.ReceivedTimestamp));
-#endif
-            }
-
-            var subscription = SocketSubscription.CreateForRequest(NextId(), request, userSubscription, InternalHandler);
-            connection.AddSubscription(subscription);
-            return subscription;
-        }
-
-        /// <summary>
-        /// Process an unhandled message
-        /// </summary>
-        /// <param name="token">The token that wasn't processed</param>
-        protected void HandleUnhandledMessage(JToken token)
-        {
         }
 
         /// <summary>
@@ -326,38 +297,12 @@ namespace BinanceAPI.ClientHosts
         /// </summary>
         /// <param name="subscription">The subscription to unsubscribe</param>
         /// <returns></returns>
-        public async Task UnsubscribeAsync(UpdateSubscription subscription)
-        {
-            if (subscription == null)
-                throw new ArgumentNullException(nameof(subscription));
-#if DEBUG
-            SocketLog?.Info("Closing subscription " + subscription.Id);
-#endif
-            await subscription.CloseAndDisposeAsync().ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Unsubscribe all subscriptions
-        /// </summary>
-        /// <returns></returns>
-        public async Task UnsubscribeAllAsync()
+        public async Task UnsubscribeAsync(BaseSocketClient client)
         {
 #if DEBUG
-            SocketLog?.Debug($"Closing all {AllSockets.Count} subscriptions");
+            SocketLog?.Info("Closing subscription " + client.Request.Id);
 #endif
-            await Task.Run(async () =>
-            {
-                var tasks = new List<Task>();
-                {
-                    var socketList = AllSockets.Values;
-                    foreach (var sub in socketList)
-                    {
-                        tasks.Add(sub.DisposeAsync());
-                    }
-                }
-
-                await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            await client.CloseAndDisposeSubscriptionAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -368,7 +313,6 @@ namespace BinanceAPI.ClientHosts
 #if DEBUG
             SocketLog?.Debug("Disposing socket client, closing all subscriptions");
 #endif
-            Task.Run(UnsubscribeAllAsync).ConfigureAwait(false).GetAwaiter().GetResult();
             base.Dispose();
         }
     }

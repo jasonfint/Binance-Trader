@@ -47,7 +47,7 @@ namespace BinanceAPI.Converters
         /// <summary>
         /// Known String Mappings
         /// </summary>
-        protected List<KeyValuePair<AccountType, string>> Mapping => new()
+        protected static List<KeyValuePair<AccountType, string>> Mapping => new()
         {
             new KeyValuePair<AccountType, string>(AccountType.Unknown, "UNKNOWN"),
             new KeyValuePair<AccountType, string>(AccountType.Spot, "SPOT"),

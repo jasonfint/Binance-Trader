@@ -39,6 +39,7 @@
     Icon="/BV/Resources/savings.png"
     ResizeMode="CanResizeWithGrip"
     SizeChanged="Window_SizeChanged"
+    ShowInTaskbar="False"
     WindowStyle="None">
 
     <Window.Resources>

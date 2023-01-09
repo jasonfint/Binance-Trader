@@ -27,21 +27,20 @@ namespace BTNET.BV.Abstract
     internal class SettingsObject
     {
         public SettingsObject(bool? showBorrowInfoIsChecked, bool? showSymbolInfoIsChecked, bool? showBreakDownInfoIsChecked,
-            bool? showMarginInfoIsChecked, bool? showIsolatedInfoIsChecked, double? orderOpacity, bool? transparentTitleIsChecked, bool? checkForUpdates, bool? sellLimitChecked, bool? sellBorrowChecked, bool? buyBorrowChecked, bool? buyLimitChecked, bool? realTimeMode, bool? showNotifications, bool? disableOpacity,
-            bool? autoSave, bool? keepFirstOrder)
+            bool? showMarginInfoIsChecked, bool? showIsolatedInfoIsChecked, bool? transparentTitleIsChecked, bool? checkForUpdates, bool? sellLimitChecked, bool? sellBorrowChecked, bool? buyBorrowChecked, bool? buyLimitChecked, bool? showNotifications, bool? disableOpacity,
+            bool? autoSave, bool? keepFirstOrder, bool? dangerousButtonsIsChecked, double watchListHeight, bool? showScraperButtonIsChecked)
         {
             ShowBorrowInfoIsChecked = showBorrowInfoIsChecked;
             ShowSymbolInfoIsChecked = showSymbolInfoIsChecked;
             ShowBreakDownInfoIsChecked = showBreakDownInfoIsChecked;
             ShowMarginInfoIsChecked = showMarginInfoIsChecked;
             ShowIsolatedInfoIsChecked = showIsolatedInfoIsChecked;
+            ShowScraperButtonIsChecked = showScraperButtonIsChecked;
 
             TransparentTitleIsChecked = transparentTitleIsChecked;
             DisableOpacity = disableOpacity;
 
-            OrderOpacity = orderOpacity;
             CheckForUpdates = checkForUpdates;
-            RealTimeMode = realTimeMode;
 
             SellLimitChecked = sellLimitChecked;
             BuyLimitChecked = buyLimitChecked;
@@ -52,6 +51,8 @@ namespace BTNET.BV.Abstract
             AutoSaveSettings = autoSave;
 
             KeepFirstOrder = keepFirstOrder;
+            DangerousButtonsIsChecked = dangerousButtonsIsChecked;
+            WatchListHeight = watchListHeight;
         }
 
         public bool? DisableOpacity { get; set; }
@@ -62,11 +63,13 @@ namespace BTNET.BV.Abstract
         public bool? ShowBreakDownInfoIsChecked { get; set; }
         public bool? ShowMarginInfoIsChecked { get; set; }
         public bool? ShowIsolatedInfoIsChecked { get; set; }
+        public bool? ShowScraperButtonIsChecked { get; set; }
 
-        public double? OrderOpacity { get; set; }
+        public bool? DangerousButtonsIsChecked { get; set; }
+
+        public double? WatchListHeight { get; set; }
 
         public bool? CheckForUpdates { get; set; }
-        public bool? RealTimeMode { get; set; }
 
         public bool? SellLimitChecked { get; set; }
         public bool? SellBorrowChecked { get; set; }

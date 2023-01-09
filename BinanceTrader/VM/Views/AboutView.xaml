@@ -32,6 +32,7 @@
     Background="Black"
     Icon="/BV/Resources/about.png"
     ResizeMode="NoResize"
+    ShowInTaskbar="False"
     WindowStyle="None">
 
     <Window.Resources>
@@ -81,9 +82,9 @@
                 VerticalAlignment="Center"
                 Foreground="White"
                 TextBlock.TextAlignment="Center">
-                <TextBlock Foreground="White" Text="{Binding Product}" />
+                <TextBlock Foreground="White" Text="{Binding MainVM.Product}" />
                 - Version:
-                <TextBlock Foreground="White" Text="{Binding Version}" />
+                <TextBlock Foreground="White" Text="{Binding MainVM.Version}" />
             </TextBlock>
             <TextBlock
                 Foreground="AntiqueWhite"
@@ -97,7 +98,7 @@
                 Foreground="White"
                 TextBlock.TextAlignment="Center">
                 Made By S Christison - ©2022<LineBreak />
-                This is free software,<Hyperlink NavigateUri="https://github.com/HypsyNZ/BinanceTrader.NET" RequestNavigate="Hyperlink_RequestNavigate">
+                This is free software, <Hyperlink NavigateUri="https://github.com/HypsyNZ/Binance-Trader" RequestNavigate="Hyperlink_RequestNavigate">
                     Available on Github
                 </Hyperlink>
             </TextBlock>

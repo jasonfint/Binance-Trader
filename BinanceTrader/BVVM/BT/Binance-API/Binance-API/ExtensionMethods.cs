@@ -23,15 +23,11 @@
 */
 
 using BinanceAPI.Enums;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BinanceAPI
 {
@@ -139,39 +135,6 @@ namespace BinanceAPI
         }
 
         /// <summary>
-        /// String to JToken
-        /// </summary>
-        /// <param name="stringData"></param>
-        /// <returns></returns>
-        public static JToken? ToJToken(this string stringData)
-        {
-            try
-            {
-                return JToken.Parse(stringData);
-            }
-            catch (JsonReaderException jre)
-            {
-                _ = Task.Run(() =>
-                {
-                    var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Data: {stringData}";
-                    TheLog.SocketLog?.Error(info);
-                }).ConfigureAwait(false);
-
-                return null;
-            }
-            catch (JsonSerializationException jse)
-            {
-                _ = Task.Run(() =>
-                {
-                    var info = $"Deserialize JsonSerializationException: {jse.Message}. Data: {stringData}";
-                    TheLog.SocketLog?.Error(info);
-                }).ConfigureAwait(false);
-
-                return null;
-            }
-        }
-
-        /// <summary>
         /// Validates an int is one of the allowed values
         /// </summary>
         /// <param name="value">Value of the int</param>
@@ -210,17 +173,6 @@ namespace BinanceAPI
         }
 
         /// <summary>
-        /// Validates an object is not null
-        /// </summary>
-        /// <param name="value">The value of the object</param>
-        /// <param name="argumentName">Name of the parameter</param>
-        public static void ValidateNotNull(this object value, string argumentName)
-        {
-            if (value == null)
-                throw new ArgumentException($"No value provided for parameter {argumentName}", argumentName);
-        }
-
-        /// <summary>
         /// Validates a list is not null or empty
         /// </summary>
         /// <param name="value">The value of the object</param>
@@ -230,36 +182,5 @@ namespace BinanceAPI
             if (value == null || !value.Any())
                 throw new ArgumentException($"No values provided for parameter {argumentName}", argumentName);
         }
-
-#if DEBUG
-
-        /// <summary>
-        /// Format an exception and inner exception to a readable string
-        /// </summary>
-        /// <param name="exception"></param>
-        /// <returns></returns>
-        public static string ToLogString(this Exception exception)
-        {
-            var message = new StringBuilder();
-            var indent = 0;
-            while (exception != null)
-            {
-                for (var i = 0; i < indent; i++)
-                    message.Append(' ');
-                message.Append(exception.GetType().Name);
-                message.Append(" - ");
-                message.AppendLine(exception.Message);
-                for (var i = 0; i < indent; i++)
-                    message.Append(' ');
-                message.AppendLine(exception.StackTrace);
-
-                indent += 2;
-                exception = exception.InnerException;
-            }
-
-            return message.ToString();
-        }
-
-#endif
     }
 }

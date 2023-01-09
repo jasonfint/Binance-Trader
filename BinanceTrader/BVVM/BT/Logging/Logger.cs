@@ -14,6 +14,7 @@ using BTNET.BV.Base;
 using BTNET.BV.Enum;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace BTNET.BVVM
 {
@@ -45,6 +46,7 @@ namespace BTNET.BVVM
             DateFormat = dateFormat;
             LogPath = path;
             LogToConsole = logToConsole;
+            Start();
         }
 
         /// <summary>
@@ -105,18 +107,24 @@ namespace BTNET.BVVM
             {
                 LoggedMessages.Enqueue(new Message(message, DateFormat, logLevel));
 
-                MessageQueue.ProcessQueue(LoggedMessages, LogPath, LogToConsole, LogLevel);
-
                 if (!TimerRunning)
                 {
-                    TimerRunning = true;
-                    LogTimer = new Timer(new TimerCallback((o) =>
-                    {
-                        MessageQueue.ProcessQueue(LoggedMessages, LogPath, LogToConsole, LogLevel);
-                    }), null, 1, LoggingInterval);
+                    Start();
                 }
             }
             catch { }
+        }
+
+        internal void Start()
+        {
+            Task.Run(() =>
+            {
+                TimerRunning = true;
+                LogTimer = new Timer(new TimerCallback((o) =>
+                {
+                    MessageQueue.ProcessQueue(LoggedMessages, LogPath, LogToConsole, LogLevel);
+                }), null, 1, LoggingInterval);
+            }).ConfigureAwait(false);
         }
 
         /// <summary>

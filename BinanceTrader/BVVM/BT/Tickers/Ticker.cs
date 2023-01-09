@@ -23,10 +23,10 @@
 */
 
 using BinanceAPI;
+using BinanceAPI.ClientBase;
 using BinanceAPI.ClientHosts;
 using BinanceAPI.Enums;
 using BinanceAPI.Objects.Spot.MarketData;
-using BinanceAPI.Sockets;
 using BTNET.BV.Abstract;
 using BTNET.BV.Base;
 using BTNET.BV.Enum;
@@ -34,6 +34,7 @@ using BTNET.BVVM.BT.Args;
 using BTNET.BVVM.Log;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace BTNET.BVVM.BT
 {
@@ -47,7 +48,7 @@ namespace BTNET.BVVM.BT
         private readonly SocketClientHost TickerSocket = new SocketClientHost();
 
         private BinanceSymbol? TickerSymbol { get; set; }
-        private UpdateSubscription? TickerUpdateSubscription { get; set; }
+        private BaseSocketClient? TickerUpdateSubscription { get; set; }
 
         public TickerResultEventArgs TickerResult { get; set; }
 
@@ -99,6 +100,11 @@ namespace BTNET.BVVM.BT
                 else
                 {
                     WriteLog.Info("Ticker for [" + Symbol + "] is still running because it had multiple owners");
+                    var r = Owner.GetOwners();
+                    foreach (Owner o in r)
+                    {
+                        WriteLog.Info(o.ToString());
+                    }
                 }
 #endif
             }
@@ -114,14 +120,14 @@ namespace BTNET.BVVM.BT
         /// Stop the Ticker if no owners exist
         /// </summary>
         /// <returns>True if the Ticker Stopped</returns>
-        public bool StopTicker()
+        public Task<bool> StopTicker()
         {
             if (!Owner.Exists())
             {
-                return DestroySymbolTicker();
+                return Task.FromResult(DestroySymbolTicker());
             }
 
-            return false;
+            return Task.FromResult(false);
         }
 
         internal bool DestroySymbolTicker()
@@ -131,7 +137,7 @@ namespace BTNET.BVVM.BT
                 TickerSocket.UnsubscribeAsync(TickerUpdateSubscription).ConfigureAwait(false);
                 TickerSymbol = null;
                 TickerResult = new TickerResultEventArgs();
-                TickerUpdateSubscription.CloseAndDisposeAsync().ConfigureAwait(false);
+                TickerUpdateSubscription.CloseAndDisposeSubscriptionAsync().ConfigureAwait(false);
                 WriteLog.Info("Stopped Ticker for [" + Symbol + "]");
                 Symbol = "";
                 return true;
@@ -151,7 +157,7 @@ namespace BTNET.BVVM.BT
                 if (TickerUpdateSubscription != null)
                 {
                     _ = TickerSocket.UnsubscribeAsync(TickerUpdateSubscription);
-                    TickerUpdateSubscription.StatusChanged -= Subscription_StatusChanged;
+                    TickerUpdateSubscription.ConnectionStatusChanged -= Subscription_StatusChanged;
                     TickerUpdateSubscription = null;
                 }
 
@@ -173,7 +179,7 @@ namespace BTNET.BVVM.BT
                         }
                     }).Result.Data;
 
-                    TickerUpdateSubscription.StatusChanged += Subscription_StatusChanged;
+                    TickerUpdateSubscription.ConnectionStatusChanged += Subscription_StatusChanged;
                     WriteLog.Info("Started Ticker for [" + Symbol + "]");
                 }
             }

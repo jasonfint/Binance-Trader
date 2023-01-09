@@ -27,7 +27,7 @@ using System;
 
 namespace BinanceAPI.Objects.Other
 {
-    internal class BinanceSocketRequest
+    public class BinanceSocketRequest
     {
         [JsonProperty("method")]
         public string Method { get; set; } = "";

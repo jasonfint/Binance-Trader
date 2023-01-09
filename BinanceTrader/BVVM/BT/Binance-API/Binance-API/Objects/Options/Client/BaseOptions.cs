@@ -49,16 +49,10 @@ namespace BinanceAPI.Options
         /// </summary>
         public bool LogToConsole { get; set; } = true;
 
-        /// <summary>
-        /// If true, the CallResult and DataEvent objects will also include the originally received json data in the OriginalData property
-        /// <para>Default false</para>
-        /// </summary>
-        public bool OutputOriginalData { get; set; } = false;
-
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"LogLevel: {LogLevel}, OutputOriginalData: {OutputOriginalData}";
+            return $"LogLevel: {LogLevel}";
         }
     }
 }

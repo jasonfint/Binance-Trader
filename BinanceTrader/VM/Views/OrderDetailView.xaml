@@ -30,12 +30,13 @@
     xmlns:controls="clr-namespace:BTNET.VM.Controls"
     Title="{Binding OrderId}"
     Width="320"
-    Height="255"
+    Height="260"
     Background="Black"
     Closed="Window_Closed"
     Icon="/BV/Resources/stratview.png"
     ResizeMode="NoResize"
     UseLayoutRounding="True"
+    ShowInTaskbar="False"
     WindowStyle="None">
 
     <Window.Resources>
@@ -325,13 +326,13 @@
                         Grid.Column="0"
                         Margin="2"
                         Foreground="White"
-                        ToolTip="You should account for some slippage yourself if you are going to use this for limit orders"
-                        Text="Settle Order: " />
+                        ToolTip="Start the Order Action, You should configure the boxes below before you tick this &#xA;If you use this to Sell you might need to tick borrow to settle"
+                        Text="Enable: " />
                     <CheckBox
                         Grid.Row="0"
                         Grid.Column="1"
                         Margin="2"
-                        ToolTip="You should account for some slippage yourself if you are going to use this for limit orders"
+                        ToolTip="Start the Order Action, You should configure the boxes below before you tick this &#xA;If you use this to Sell you might need to tick borrow to settle"
                         Command="{Binding Helper.SettleOrderToggleCommand}"
                         IsEnabled="{Binding Helper.SettleOrderEnabled}"
                         IsChecked="{Binding Helper.ToggleSettleChecked, Mode=TwoWay, UpdateSourceTrigger=Explicit}" />
@@ -350,13 +351,19 @@
                         ToolTip="If borrowing should be used where available when settling automatically"
                         Command="{Binding Helper.BorrowForSettleToggleCommand}"
                         IsChecked="{Binding Helper.BorrowForSettleChecked, Mode=TwoWay, UpdateSourceTrigger=Explicit}" />
-                    <TextBlock
+                    <StackPanel     
                         Grid.Row="2"
-                        Grid.Column="0"
+                        Grid.Column="0" 
+                        Orientation="Horizontal">
+                        <Label Content="%" Foreground="White"></Label>
+                        <TextBlock
                         Margin="2"
+                        VerticalAlignment="Center"
                         ToolTip="Desired PnL percentage to settle the order, must be a positive number"
                         Foreground="White"
-                        Text="Settle % : " />
+                        Text="{Binding Helper.SettlePercentDecimal}" />
+                    </StackPanel>
+       
                     <tk:DecimalUpDown
                         Grid.Row="2"
                         Grid.Column="1"

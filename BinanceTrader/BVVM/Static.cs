@@ -31,7 +31,6 @@ using BTNET.BVVM.BT;
 using BTNET.VM.ViewModels;
 using BTNET.VM.Views;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Windows.Media;
 
 namespace BTNET.BVVM
@@ -41,11 +40,10 @@ namespace BTNET.BVVM
     {
         private static volatile BinanceSymbolViewModel selectedSymbolViewModel = new();
         private static volatile BinanceSymbolViewModel? lastSelectedSymbolViewModel;
-        private static volatile BinanceSymbolViewModel? previousSymbol;
-
         public static readonly SolidColorBrush AntiqueWhite = new SolidColorBrush(Colors.AntiqueWhite);
         public static readonly SolidColorBrush Green = new SolidColorBrush(Colors.GreenYellow);
         public static readonly SolidColorBrush Red = new SolidColorBrush(Colors.Red);
+        public static readonly SolidColorBrush Gold = new SolidColorBrush(Colors.Gold);
         public static readonly SolidColorBrush Transparent = new SolidColorBrush(Colors.Transparent);
         public static readonly SolidColorBrush Gray = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#242325"));
 
@@ -56,13 +54,11 @@ namespace BTNET.BVVM
         public static OrderManager ManageStoredOrders { get; set; } = new();
 
         public static StoredAlerts ManageStoredAlerts { get; set; } = new();
-
-        public static RealTimeUpdateBase RealTimeUpdate { get; set; } = new();
         public static BinanceMarginAccount MarginAccount { get; set; } = new();
         public static BinanceSymbol? CurrentSymbolInfo { get; set; } = new();
 
-        public static ObservableCollection<BinanceSymbolViewModel> AllPrices { get; set; } = new();
-        public static ObservableCollection<BinanceSymbolViewModel> AllPricesUnfiltered { get; set; } = new();
+        public static List<BinanceSymbolViewModel> AllPrices { get; set; } = new();
+        public static List<BinanceSymbolViewModel> AllPricesUnfiltered { get; set; } = new();
 
         public static List<long> SettledOrders { get; set; } = new List<long>();
 
@@ -72,7 +68,6 @@ namespace BTNET.BVVM
         public static string LastIsolatedListenKeySymbol { get; set; } = "";
 
         public static bool IsStarted { get; set; }
-        public static bool IsListFocus { get; set; }
         public static bool IsSearching { get; set; }
 
         public static BinanceSymbolViewModel SelectedSymbolViewModel
@@ -87,11 +82,7 @@ namespace BTNET.BVVM
             set => lastSelectedSymbolViewModel = value;
         }
 
-        public static BinanceSymbolViewModel? PreviousSymbol
-        {
-            get => previousSymbol;
-            set => previousSymbol = value;
-        }
+        public static string PreviousSymbolText { get; set; } = string.Empty;
 
         public static Prompt MessageBox { get; set; } = new();
 

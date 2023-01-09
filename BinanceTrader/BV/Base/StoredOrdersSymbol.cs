@@ -22,13 +22,14 @@
 *SOFTWARE.
 */
 
-using BTNET.BV.Base;
 using BTNET.BV.Enum;
+using BTNET.VM.ViewModels;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using TJson.NET;
 
-namespace BTNET.BVVM.BT
+namespace BTNET.BV.Base
 {
     public class StoredOrdersSymbol
     {
@@ -38,15 +39,10 @@ namespace BTNET.BVVM.BT
         public TradingMode TradingMode { get; set; } = TradingMode.Error;
         public string Symbol { get; set; } = string.Empty;
 
-        public StoredOrdersSymbol(string symbol, TradingMode tradingMode, List<OrderBase>? orders = null)
+        public StoredOrdersSymbol(string symbol, TradingMode tradingMode)
         {
             Symbol = symbol;
             TradingMode = tradingMode;
-
-            if (orders != null)
-            {
-                BaseOrders = orders;
-            }
         }
 
         public string Path => App.OrderPath + "\\" + TradingMode + "\\" + Symbol;
@@ -60,31 +56,67 @@ namespace BTNET.BVVM.BT
             }
         }
 
-        public void Add(OrderBase o)
-        {
-            lock (_lock)
-            {
-                BaseOrders.Add(o);
-            }
-        }
-
-        public void AddBulk(List<OrderBase> o)
+        public void AddBulk(IEnumerable<OrderBase> o, TradingMode tradingMode)
         {
             lock (_lock)
             {
                 foreach (OrderBase order in o)
                 {
+                    if (order.Helper == null)
+                    {
+                        order.Helper = new OrderHelperViewModel(order.Side, tradingMode, order.Symbol);
+                    }
+
                     BaseOrders.Add(order);
                 }
             }
         }
 
-        public List<OrderBase> GetAll()
+        public OrderBase AddOrder(OrderBase order, bool canUpdateHide)
         {
-            lock (_lock)
+            var existingOrder = BaseOrders.Where(t => t.OrderId == order.OrderId).FirstOrDefault();
+            if (existingOrder != null)
             {
-                return BaseOrders;
+                existingOrder.Price = order.Price;
+
+                existingOrder.QuantityFilled = order.QuantityFilled;
+                existingOrder.CumulativeQuoteQuantityFilled = order.CumulativeQuoteQuantityFilled;
+                existingOrder.Fulfilled = order.Fulfilled;
+
+                existingOrder.Quantity = order.Quantity;
+                existingOrder.Status = order.Status;
+                existingOrder.Pnl = order.Pnl;
+
+                existingOrder.CreateTime = order.CreateTime;
+                existingOrder.UpdateTime = order.UpdateTime;
+
+                existingOrder.Fee = order.Fee;
+                existingOrder.MinPos = order.MinPos;
+
+                existingOrder.InterestToDate = order.InterestToDate;
+                existingOrder.InterestToDateQuote = order.InterestToDateQuote;
+                existingOrder.InterestPerHour = order.InterestPerHour;
+                existingOrder.InterestPerDay = order.InterestPerDay;
+
+                existingOrder.ResetTime = order.ResetTime;
+                existingOrder.CanCancel = order.CanCancel;
+
+                existingOrder.IsMaker = order.IsMaker;
+                existingOrder.Cancelled = order.Cancelled;
+
+                if (canUpdateHide)
+                {
+                    existingOrder.IsOrderHidden = order.IsOrderHidden;
+                }
+
+                return existingOrder;
             }
+            else
+            {
+                BaseOrders.Add(order);
+            }
+
+            return order;
         }
     }
 }

@@ -22,7 +22,6 @@
 *SOFTWARE.
 */
 
-using BTNET.BVVM.Identity;
 using BTNET.BVVM.Identity.Structs;
 using System;
 

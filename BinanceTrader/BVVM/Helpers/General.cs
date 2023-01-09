@@ -24,6 +24,7 @@
 
 using BTNET.BV.Abstract;
 using BTNET.BVVM.Log;
+using BTNET.VM.ViewModels;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -43,6 +44,12 @@ namespace BTNET.BVVM.Helpers
         private const string DEFAULT_FORMAT = "#,0.############";
 
         static IntPtr DefaultAffinityMask = IntPtr.Zero;
+
+        public static decimal RoundDown(decimal i, double decimalPlaces)
+        {
+            var power = Convert.ToDecimal(Math.Pow(10, decimalPlaces));
+            return Math.Floor(i * power) / power;
+        }
 
         public static string StringFormat(decimal scale)
         {
@@ -72,6 +79,26 @@ namespace BTNET.BVVM.Helpers
             }
         }
 
+        public static string StringFormatQuote(decimal scale)
+        {
+            switch (scale)
+            {
+                case <= 4:
+                    return "#,0.0000";
+                case 5:
+                    return "#,0.00000";
+                case 6:
+                    return "#,0.000000";
+                case 7:
+                    return "#,0.0000000";
+                case 8:
+                    return "#,0.00000000";
+                case >= 9:
+                    return "#,0.000000000";
+                default: return DEFAULT_FORMAT;
+            }
+        }
+
         /// <summary>
         /// Use the Github API to Check for Updates
         /// </summary>
@@ -82,7 +109,7 @@ namespace BTNET.BVVM.Helpers
             {
                 if (SettingsVM.CheckForUpdatesIsChecked ?? false)
                 {
-                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://api.github.com/repos/HypsyNZ/BinanceTrader.NET/releases");
+                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://api.github.com/repos/HypsyNZ/Binance-Trader/releases");
                     request.UserAgent = new Random(new Random().Next()).ToString();
 
                     var response = request.GetResponse();
@@ -92,19 +119,19 @@ namespace BTNET.BVVM.Helpers
 
                         string readerOutput = reader.ReadToEnd();
 
-                        List<Tag>? deserializedString = JsonConvert.DeserializeObject<List<Tag>>(readerOutput);
-                        if (deserializedString != null && deserializedString.Count > 0)
+                        IEnumerable<Tag>? deserializedString = JsonConvert.DeserializeObject<List<Tag>>(readerOutput);
+                        if (deserializedString != null && deserializedString.Any())
                         {
                             Tag tagOnFirstRelease = deserializedString.FirstOrDefault();
                             if (tagOnFirstRelease != null)
                             {
-                                if ("v" + Core.Version == tagOnFirstRelease.TagName)
+                                if ("v" + MainViewModel.Version == tagOnFirstRelease.TagName)
                                 {
                                     return Task.FromResult("You are using the most recent version");
                                 }
                                 else
                                 {
-                                    return Task.FromResult("Update: " + tagOnFirstRelease.TagName);
+                                    return Task.FromResult("Update Available: " + tagOnFirstRelease.TagName);
                                 }
                             }
                         }
@@ -128,64 +155,19 @@ namespace BTNET.BVVM.Helpers
         /// Sets Process Priority to Real Time
         /// </summary>
         /// <returns></returns>
-        public static async Task ProcessPriorityAsync(bool reset)
+        public static Task ProcessPriorityAsync()
         {
-            await Task.Run(() =>
+            try
             {
-                try
-                {
-                    using Process p = Process.GetCurrentProcess();
-
-                    if (!reset)
-                    {
-                        p.PriorityClass = ProcessPriorityClass.RealTime;
-                    }
-                    else
-                    {
-                        p.PriorityClass = ProcessPriorityClass.High;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    WriteLog.Error("Something went wrong setting Process Priority", ex);
-                }
-                return Task.CompletedTask;
-            });
-        }
-
-        /// <summary>
-        /// Sets Processor Affinity to use every other core
-        /// (uses 8 cores on 20 core machine)
-        /// </summary>
-        /// <returns></returns>
-        public static async Task ProcessAffinityAsync(bool reset)
-        {
-            await Task.Run(() =>
+                using Process p = Process.GetCurrentProcess();
+                p.PriorityClass = ProcessPriorityClass.High;
+            }
+            catch (Exception ex)
             {
-                try
-                {
-                    using Process p = Process.GetCurrentProcess();
-                    p.Refresh();
+                WriteLog.Error("Something went wrong setting Process Priority", ex);
+            }
 
-                    if (DefaultAffinityMask == IntPtr.Zero)
-                    {
-                        DefaultAffinityMask = p.ProcessorAffinity;
-                    }
-
-                    if (!reset)
-                    {
-                        p.ProcessorAffinity = (IntPtr)(DefaultAffinityMask.ToInt32() / AFFINITY_MASK);
-                    }
-                    else
-                    {
-                        p.ProcessorAffinity = DefaultAffinityMask;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    WriteLog.Error("Something went wrong setting Process Affinity", ex);
-                }
-            });
+            return Task.CompletedTask;
         }
 
         /// <summary>

@@ -22,7 +22,6 @@
 *SOFTWARE.
 */
 
-using System;
 using System.IO;
 
 namespace TJson.NET.Helpers
@@ -34,7 +33,6 @@ namespace TJson.NET.Helpers
         /// <para>the original file will be deleted if the backup for it is located</para>
         /// </summary>
         /// <param name="originalFileFullPath">File you want to locate and restore the backup for</param>
-        /// <param name="backupName">Friendly name of this backup for logging purposes</param>
         /// <returns></returns>
         public static bool RestoreBackup(string originalFileFullPath)
         {
@@ -44,7 +42,7 @@ namespace TJson.NET.Helpers
 
                 if (File.Exists(backup))
                 {
-                    File.Delete(originalFileFullPath);                    
+                    File.Delete(originalFileFullPath);
 
                     File.Copy(backup, originalFileFullPath);
 

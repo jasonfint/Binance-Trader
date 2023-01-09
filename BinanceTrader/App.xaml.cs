@@ -27,11 +27,13 @@ using BTNET.BV.Enum;
 using BTNET.BVVM;
 using BTNET.BVVM.BT;
 using BTNET.VM.Views;
+using PrecisionTiming;
 using System;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Media.Imaging;
 
 namespace BTNET
 {
@@ -41,6 +43,10 @@ namespace BTNET
     [ComVisible(false)]
     public partial class App : Application
     {
+        public static BitmapImage ImageOne;
+        public static BitmapImage ImageTwo;
+        public static BitmapImage ImageThree;
+
         /// <summary>
         /// Occurs when the program has started successfully and is ready
         /// </summary>
@@ -80,7 +86,6 @@ namespace BTNET
 
         public static readonly int BORDER_THICKNESS = 6;
         public static readonly int BORDER_THICKNESS_OFFSET = 1;
-        public static readonly int ORDER_LIST_MAX_HEIGHT_OFFSET_NORMAL = 33;
 
         public static readonly int RAPID_CLICKS_TO_MAXIMIZE_WINDOW = 2;
 
@@ -99,6 +104,7 @@ namespace BTNET
         public static readonly string KeyFile;
         public static readonly string Settings;
         public static readonly string SettingsPanels;
+        public static readonly string SettingsScraper;
 
         public static readonly string Listofwatchlistsymbols;
 
@@ -113,7 +119,6 @@ namespace BTNET
         internal static readonly Logging LogAlert;
 
         internal static readonly NumberFormatInfo NumberFormatInformation = (NumberFormatInfo)CultureInfo.InvariantCulture.NumberFormat.Clone();
-
         static App()
         {
 #if RELEASE || DEBUG
@@ -133,6 +138,7 @@ namespace BTNET
             KeyFile = SettingsPath + @"Encrypted_Keys.json";
             Settings = SettingsPath + @"settings.json";
             SettingsPanels = SettingsPath + @"settingsPanels.json";
+            SettingsScraper = SettingsPath + @"settingsScraper.json";
 
             Listofwatchlistsymbols = SettingsPath + @"symbols.json";
 
@@ -147,6 +153,13 @@ namespace BTNET
             LogAlert = new(BasePath + @"alerts.txt", false, logLevel: LogLevel.Information);
 
             NumberFormatInformation.NumberGroupSeparator = ",";
+
+            MMTimerExports.timeGetDevCaps(ref MMTimerExports.Capabilities, Marshal.SizeOf(MMTimerExports.Capabilities));
+            PrecisionTimerSettings.SetMinimumTimerResolution(MMTimerExports.Capabilities.PeriodMinimum);
+
+            ImageOne = new BitmapImage(new Uri("pack://application:,,,/BV/Resources/Connection/connection-status-connected.png"));
+            ImageTwo = new BitmapImage(new Uri("pack://application:,,,/BV/Resources/Connection/connection-status-connecting.png"));
+            ImageThree = new BitmapImage(new Uri("pack://application:,,,/BV/Resources/Connection/connection-status-disconnected.png"));
         }
     }
 }

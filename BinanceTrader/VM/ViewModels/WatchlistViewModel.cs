@@ -41,23 +41,19 @@ namespace BTNET.VM.ViewModels
 {
     public class WatchlistViewModel : Core
     {
-        private const int MAX_ATTEMPTS = 3;
-
-        private const int LOOP_DELAY_MS = 20;
-        private const int LOOP_EXPIRE_TIME_MS = 10000;
-
         private ObservableCollection<WatchlistItem> watchlistitems = new();
         private ObservableCollection<string> allWatchlistSymbols = new();
+
+        private string? resetText;
         private string? selectedWatchlistSymbol;
         private bool watchlistSymbolsEnabled;
-        private string? resetText;
+        private bool removeButtonEnabled = true;
 
-        private static bool RestoreWatchListAttempted { get; set; }
+        private const int WATCHLIST_LOOP_DELAY_MS = 20;
+        private const int WATCHLIST_LOOP_EXPIRE_TIME_MS = 10000;
 
         public ICommand? RemoveFromWatchlistCommand { get; set; }
         public ICommand? AddToWatchlistCommand { get; set; }
-
-        private bool removeButtonEnabled = true;
 
         public void InitializeCommands()
         {
@@ -143,7 +139,7 @@ namespace BTNET.VM.ViewModels
                     });
                 });
 
-                List<string>? StoredwatchlistSymbols = Json.Load<List<string>>(App.Listofwatchlistsymbols, true);
+                IEnumerable<string>? StoredwatchlistSymbols = Json.Load<List<string>>(App.Listofwatchlistsymbols, true);
                 if (StoredwatchlistSymbols != null)
                 {
                     List<string> removeDuplicates = new List<string>();
@@ -162,7 +158,7 @@ namespace BTNET.VM.ViewModels
 
                     var startTime = DateTime.UtcNow.Ticks;
                     var sw = Stopwatch.StartNew();
-                    while (await Loop.Delay(startTime, LOOP_DELAY_MS, LOOP_EXPIRE_TIME_MS, () =>
+                    while (await Loop.Delay(startTime, WATCHLIST_LOOP_DELAY_MS, WATCHLIST_LOOP_EXPIRE_TIME_MS, () =>
                     {
                         WriteLog.Info("Watchlist is taking a long time to connect: [" + sw.ElapsedMilliseconds.ToString() + "ms]");
                     }).ConfigureAwait(false))
@@ -226,22 +222,26 @@ namespace BTNET.VM.ViewModels
         {
             if (Static.AllPricesUnfiltered.Where(x => x.SymbolView.Symbol == Symbol).FirstOrDefault() != null)
             {
-                WatchlistItem watchListItem = new WatchlistItem(Symbol);
-                watchListItem.SubscribeWatchListItemSocket();
-
-                InvokeUI.CheckAccess(() =>
+                var temp = Static.ManageExchangeInfo.GetStoredSymbolInformation(Symbol);
+                if (temp != null)
                 {
-                    WatchListItems.Add(watchListItem);
-                    WatchListItems = new ObservableCollection<WatchlistItem>(WatchListItems.OrderByDescending(d => d.WatchlistSymbol));
-                });
+                    WatchlistItem watchListItem = new WatchlistItem(temp);
+                    watchListItem.SubscribeWatchListItemSocket();
 
-                return Task.FromResult(true);
+                    InvokeUI.CheckAccess(() =>
+                    {
+                        WatchListItems.Add(watchListItem);
+                        WatchListItems = new ObservableCollection<WatchlistItem>(WatchListItems.OrderByDescending(d => d.WatchlistSymbol));
+                    });
+
+                    return Task.FromResult(true);
+                }
             }
-            else
-            {
-                WriteLog.Error("Failed to add WatchlistItem");
-                return Task.FromResult(false);
-            }
+
+            var s = "Failed to add to Watchlist: " + Symbol;
+            WriteLog.Error(s);
+            NotifyVM.Notification(s);
+            return Task.FromResult(false);
         }
 
         public void RemoveWatchlistItem(object o)
@@ -252,9 +252,9 @@ namespace BTNET.VM.ViewModels
             {
                 _ = Task.Run(() =>
                 {
+                    WriteLog.Info("Removed Watchlist Symbol: " + watchlistItem.WatchlistSymbol);
                     InvokeUI.CheckAccess(() =>
                     {
-                        WriteLog.Info("Removed Watchlist Symbol: " + watchlistItem.WatchlistSymbol);
                         WatchListItems.Remove(watchlistItem);
                     });
 

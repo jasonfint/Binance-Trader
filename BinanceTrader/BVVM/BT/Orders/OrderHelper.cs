@@ -104,6 +104,23 @@ namespace BTNET.BVVM.BT.Orders
             }
         }
 
+        public static decimal PnLBid(OrderBase order, decimal bidPrice)
+        {
+            if (bidPrice == 0)
+            {
+                return 0;
+            }
+
+            if (order.CumulativeQuoteQuantityFilled != 0)
+            {
+                return (bidPrice * order.QuantityFilled) - order.CumulativeQuoteQuantityFilled;                
+            }
+            else
+            {
+                return (bidPrice * order.QuantityFilled) - (order.Price * order.QuantityFilled);                
+            }
+        }
+
         public static string TIF(string? tif)
         {
             return tif == "GoodTillCancel"

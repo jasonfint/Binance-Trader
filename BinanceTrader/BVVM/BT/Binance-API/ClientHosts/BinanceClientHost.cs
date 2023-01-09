@@ -26,13 +26,11 @@ using BinanceAPI.ClientBase;
 using BinanceAPI.Converters;
 using BinanceAPI.Enums;
 using BinanceAPI.Objects;
-using BinanceAPI.Objects.Shared;
 using BinanceAPI.Objects.Spot.SpotData;
 using BinanceAPI.Requests;
 using BinanceAPI.SubClients;
 using BinanceAPI.SubClients.Margin;
 using BinanceAPI.SubClients.Spot;
-using BTNET.BV.Enum;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -59,19 +57,6 @@ namespace BinanceAPI.ClientHosts
         internal readonly TimeSpan DefaultReceiveWindow;
 
         /// <summary>
-        /// <para>Spot</para>
-        /// Event triggered when an order is placed via any client.
-        /// </summary>
-        public static EventHandler<BinanceOrderBase>? OnOrderPlaced;
-
-        /// <summary>
-        /// <para>Spot</para>
-        /// <para>Note that this does not trigger when using CancelAllOrdersAsync.</para>
-        /// Event triggered when an order is cancelled via any client.
-        /// </summary>
-        public static EventHandler<BinanceOrderBase>? OnOrderCanceled;
-
-        /// <summary>
         /// General endpoints
         /// </summary>
         public BinanceClientGeneral General { get; }
@@ -91,10 +76,10 @@ namespace BinanceAPI.ClientHosts
         /// </summary>
         public BinanceClientLending Lending { get; }
 
-        /// <summary>
-        /// Withdraw/deposit endpoints
-        /// </summary>
-        public BinanceClientWithdrawDeposit WithdrawDeposit { get; }
+        ///// <summary>
+        ///// Withdraw/deposit endpoints
+        ///// </summary>
+        //public BinanceClientWithdrawDeposit WithdrawDeposit { get; }
 
         /// <summary>
         /// Fiat endpoints
@@ -163,10 +148,10 @@ namespace BinanceAPI.ClientHosts
             General = new BinanceClientGeneral(this);
             Lending = new BinanceClientLending(this);
 
-            WithdrawDeposit = new BinanceClientWithdrawDeposit(this);
+            // WithdrawDeposit = new BinanceClientWithdrawDeposit(this);
 
             RequestTimeout = options.RequestTimeout;
-            RequestFactory.Configure(options.RequestTimeout, options.Proxy, options.HttpClient);
+            RequestFactory.Configure(options.RequestTimeout, options.HttpClient);
 
             ClientLog?.Info("Started Binance Client");
         }
@@ -221,30 +206,20 @@ namespace BinanceAPI.ClientHosts
             return reply.Status == IPStatus.Success ? new CallResult<long>(reply.RoundtripTime, null) : new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + reply.Status });
         }
 
-        internal async Task<WebCallResult<BinancePlacedOrder>> PlaceOrderInternal(string uri,
+        internal async Task<WebCallResult<BinancePlacedOrder>> PlaceOrderInternalLimit(string uri,
             string symbol,
             OrderSide side,
             OrderType type,
             decimal? quantity = null,
-            decimal? quoteOrderQuantity = null,
-            string? newClientOrderId = null,
             decimal? price = null,
             TimeInForce? timeInForce = null,
             decimal? stopPrice = null,
-            decimal? icebergQty = null,
             SideEffectType? sideEffectType = null,
             bool? isIsolated = null,
             OrderResponseType? orderResponseType = null,
-            int? trailingDelta = null,
             int? receiveWindow = null,
             CancellationToken ct = default)
         {
-            if (quoteOrderQuantity != null && type != OrderType.Market)
-                throw new ArgumentException("quoteOrderQuantity is only valid for market orders");
-
-            if (quantity == null && quoteOrderQuantity == null || quantity != null && quoteOrderQuantity != null)
-                throw new ArgumentException("1 of either should be specified, quantity or quoteOrderQuantity");
-
             var parameters = new Dictionary<string, object>
             {
                 { "symbol", symbol },
@@ -253,16 +228,42 @@ namespace BinanceAPI.ClientHosts
             };
 
             parameters.AddOptionalParameter("quantity", quantity?.ToString(CultureInfo.InvariantCulture));
-            parameters.AddOptionalParameter("quoteOrderQty", quoteOrderQuantity?.ToString(CultureInfo.InvariantCulture));
-            parameters.AddOptionalParameter("newClientOrderId", newClientOrderId);
             parameters.AddOptionalParameter("price", price?.ToString(CultureInfo.InvariantCulture));
             parameters.AddOptionalParameter("timeInForce", timeInForce == null ? null : JsonConvert.SerializeObject(timeInForce, new TimeInForceConverter(false)));
             parameters.AddOptionalParameter("stopPrice", stopPrice?.ToString(CultureInfo.InvariantCulture));
-            parameters.AddOptionalParameter("icebergQty", icebergQty?.ToString(CultureInfo.InvariantCulture));
             parameters.AddOptionalParameter("sideEffectType", sideEffectType == null ? null : JsonConvert.SerializeObject(sideEffectType, new SideEffectTypeConverter(false)));
             parameters.AddOptionalParameter("isIsolated", isIsolated);
             parameters.AddOptionalParameter("newOrderRespType", orderResponseType == null ? null : JsonConvert.SerializeObject(orderResponseType, new OrderResponseTypeConverter(false)));
-            parameters.AddOptionalParameter("trailingDelta", trailingDelta);
+            parameters.AddOptionalParameter("recvWindow", receiveWindow?.ToString(CultureInfo.InvariantCulture) ?? DefaultReceiveWindow.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
+
+            return await SendRequestAsync<BinancePlacedOrder>(uri, HttpMethod.Post, ct, parameters, true).ConfigureAwait(false);
+        }
+
+        internal async Task<WebCallResult<BinancePlacedOrder>> PlaceOrderInternalMarket(
+            string uri,
+            string symbol,
+            OrderSide side,
+            OrderType type,
+            decimal? quantity = null,
+            decimal? stopPrice = null,
+            SideEffectType? sideEffectType = null,
+            bool? isIsolated = null,
+            OrderResponseType? orderResponseType = null,
+            int? receiveWindow = null,
+            CancellationToken ct = default)
+        {
+            var parameters = new Dictionary<string, object>
+            {
+                { "symbol", symbol },
+                { "side", JsonConvert.SerializeObject(side, new OrderSideConverter(false)) },
+                { "type", JsonConvert.SerializeObject(type, new OrderTypeConverter(false)) }
+            };
+
+            parameters.AddOptionalParameter("quantity", quantity?.ToString(CultureInfo.InvariantCulture));
+            parameters.AddOptionalParameter("stopPrice", stopPrice?.ToString(CultureInfo.InvariantCulture));
+            parameters.AddOptionalParameter("sideEffectType", sideEffectType == null ? null : JsonConvert.SerializeObject(sideEffectType, new SideEffectTypeConverter(false)));
+            parameters.AddOptionalParameter("isIsolated", isIsolated);
+            parameters.AddOptionalParameter("newOrderRespType", orderResponseType == null ? null : JsonConvert.SerializeObject(orderResponseType, new OrderResponseTypeConverter(false)));
             parameters.AddOptionalParameter("recvWindow", receiveWindow?.ToString(CultureInfo.InvariantCulture) ?? DefaultReceiveWindow.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
             return await SendRequestAsync<BinancePlacedOrder>(uri, HttpMethod.Post, ct, parameters, true).ConfigureAwait(false);
@@ -274,9 +275,8 @@ namespace BinanceAPI.ClientHosts
             CancellationToken cancellationToken,
             Dictionary<string, object> parameters,
             bool signed = false,
-            bool checkResult = true,
             HttpMethodParameterPosition? postPosition = null,
-            ArrayParametersSerialization? arraySerialization = null) where T : class => SendRequestAsync<T>(uri, method, cancellationToken, parameters, signed, checkResult, postPosition, arraySerialization);
+            ArrayParametersSerialization? arraySerialization = null) where T : class => SendRequestAsync<T>(uri, method, cancellationToken, parameters, signed, postPosition, arraySerialization);
 
 
         /// <summary>
@@ -288,7 +288,6 @@ namespace BinanceAPI.ClientHosts
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="parameters">The parameters of the request</param>
         /// <param name="signed">Whether or not the request should be authenticated</param>
-        /// <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param>
         /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="credits">Credits used for the request</param>
@@ -302,7 +301,6 @@ namespace BinanceAPI.ClientHosts
             CancellationToken cancellationToken,
             Dictionary<string, object> parameters,
             bool signed = false,
-            bool checkResult = true,
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
             int credits = 1,
@@ -310,33 +308,14 @@ namespace BinanceAPI.ClientHosts
             Dictionary<string, string>? additionalHeaders = null) where T : class
         {
             var requestId = NextId();
-#if DEBUG
-            ClientLog?.Debug($"[{requestId}] Creating request for " + uri);
-#endif
             if (signed && _authProvider == null)
             {
-#if DEBUG
-                ClientLog?.Warning($"[{requestId}] Request {uri} failed because no ApiCredentials were provided");
-#endif
                 return new WebCallResult<T>(default, null, null, new NoApiCredentialsError());
             }
 
             var paramsPosition = parameterPosition ?? ParameterPositions[method];
             var request = ConstructRequest(uri, method, parameters, signed, paramsPosition, arraySerialization ?? ArrayParametersSerialization.Array, requestId, additionalHeaders);
-#if DEBUG
-            string? paramString = "";
-            if (paramsPosition == HttpMethodParameterPosition.InBody)
-                paramString = " with request body " + request.Content;
 
-            if (ClientLog?.LogLevel == LogLevel.Trace)
-            {
-                var headers = request.GetHeaders();
-                if (headers.Any())
-                    paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
-            }
-
-            ClientLog?.Debug($"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(ApiProxy == null ? "" : $" via proxy {ApiProxy.Host}")}");
-#endif
             return await GetResponseAsync<T>(request, deserializer, cancellationToken).ConfigureAwait(false);
         }
 
@@ -359,14 +338,11 @@ namespace BinanceAPI.ClientHosts
                 if (response.IsSuccessStatusCode)
                 {
                     // Success status code, and we don't have to check for errors. Continue deserializing directly from the stream
-                    var desResult = await Json.DeserializeAsync<T>(responseStream, request.RequestId).ConfigureAwait(false);
+                    var desResult = await Json.DeserializeAsync<T>(responseStream).ConfigureAwait(false);
                     responseStream.Close();
                     response.Close();
-#if DEBUG
-                    return new WebCallResult<T>(statusCode, headers, Json.OutputOriginalData ? desResult.OriginalData : null, desResult.Data, desResult.Error);
-#else
+
                     return new WebCallResult<T>(statusCode, headers, null, desResult.Data, desResult.Error);
-#endif
                 }
                 else
                 {
@@ -385,41 +361,10 @@ namespace BinanceAPI.ClientHosts
                     return new WebCallResult<T>(statusCode, headers, default, error);
                 }
             }
-#if DEBUG
-            catch (HttpRequestException requestException)
-            {
-                // Request exception, can't reach server for instance
-                var exceptionInfo = requestException.ToLogString();
-
-                ClientLog?.Warning($"[{request.RequestId}] Request exception: " + exceptionInfo);
-
-                return new WebCallResult<T>(default, null, default, new WebError(exceptionInfo));
-            }
-            catch (OperationCanceledException canceledException)
-            {
-                if (canceledException.CancellationToken == cancellationToken)
-                {
-                    // Cancellation token cancelled by caller
-
-                    ClientLog?.Warning($"[{request.RequestId}] Request cancel requested");
-
-                    return new WebCallResult<T>(default, null, default, new CancellationRequestedError());
-                }
-                else
-                {
-                    // Request timed out
-
-                    ClientLog?.Warning($"[{request.RequestId}] Request timed out");
-
-                    return new WebCallResult<T>(default, null, default, new WebError($"[{request.RequestId}] Request timed out"));
-                }
-            }
-#else
             catch (HttpRequestException)
             {
                 return new WebCallResult<T>(default, null, default, null);
             }
-#endif
         }
 
         /// <summary>
@@ -495,10 +440,14 @@ namespace BinanceAPI.ClientHosts
                 {
                     var array = (Array)kvp.Value;
                     foreach (var value in array)
+                    {
                         formData.Add(kvp.Key, value.ToString());
+                    }
                 }
                 else
+                {
                     formData.Add(kvp.Key, kvp.Value.ToString());
+                }
             }
             var stringData = formData.ToString();
             request.SetContent(stringData, contentType);
@@ -530,6 +479,7 @@ namespace BinanceAPI.ClientHosts
                 _ = ServerTimeClient.Guesser().ConfigureAwait(false);
                 ServerTimeClient.CorrectionCount++;
             }
+
             return err;
         }
     }

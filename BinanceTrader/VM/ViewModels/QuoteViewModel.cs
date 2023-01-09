@@ -52,6 +52,7 @@ namespace BTNET.VM.ViewModels
         private string stringFormat = "#,0.00##########";
         private string stringFormatPriceTickSize = "#,0.00##########";
         private string stringFormatting = "#,0.00##########";
+        private string stringFormatQuotePriceTickSize = "#,0.0000########";
 
         public decimal TradeAmountBuy
         {
@@ -218,6 +219,16 @@ namespace BTNET.VM.ViewModels
             set
             {
                 stringFormatPriceTickSize = value;
+                PropChanged();
+            }
+        }
+
+        public string StringFormatQuotePriceTickSize
+        {
+            get => stringFormatQuotePriceTickSize;
+            set
+            {
+                stringFormatQuotePriceTickSize = value;
                 PropChanged();
             }
         }

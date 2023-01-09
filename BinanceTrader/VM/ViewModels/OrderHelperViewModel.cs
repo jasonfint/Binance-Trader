@@ -44,6 +44,32 @@ namespace BTNET.VM.ViewModels
 {
     public class OrderHelperViewModel : Core
     {
+        private static readonly string TICKER_PRICE = "TickerPrice";
+        private static readonly string ORDER_HIDDEN = "Order Hidden: ";
+        private static readonly string ORDER_CANCELLED = "Order Cancelled:";
+        private static readonly string ORDER_CANCEL_FAILED_TWO = ORDER_CANCEL_FAILED + ": ";
+        private static readonly string ORDER_CANCEL_FAILED = "Order Cancel Failed";
+        private static readonly string INTERNAL_ERROR = "Internal Error";
+        private static readonly string FAIL = "Failed";
+        private static readonly string ORDER_ID = "OrderId: ";
+        private static readonly string TOTAL = " | Total: ";
+        private static readonly string WITH_STATUS = " with status [";
+        private static readonly string NOT_VALID = "] is not a valid order for this feature";
+        private static readonly string DESIRED_SETTLE = " | Desired Settle %: ";
+        private static readonly string CURRENT_PNL = " | Current Pnl: ";
+        private static readonly string QUAN_MODIFIER = " | Quantity Modifier: ";
+        private static readonly string CUMULATIVE = " | Cumulative: ";
+        private static readonly string ERROR_TOTAL = " - An error occurred while trying to figure out the total";
+        private static readonly string SETTLE_LOOP_STOPPED = "Settle Loop Stopped for Order: ";
+        private static readonly string SETTLE_ID = "OrderId Settled: ";
+        private static readonly string PERCENT = " | Percent: ";
+        private static readonly string SETTLEP = " | SettlePercent: ";
+        private static readonly string PNL = " | Pnl: ";
+        private static readonly string SPOT = "Spot: ";
+        private static readonly string MARGIN = "Margin: ";
+        private static readonly string ISOLATED = "Isolated: ";
+        private static readonly string DONT_ATTEMPT_TASKS = "Error Don't Attempt Tasks!";
+
         public static readonly int ONE_HUNDRED_PERCENT = 100;
 
         private OrderSide _side;
@@ -63,6 +89,10 @@ namespace BTNET.VM.ViewModels
         private decimal bid;
         private decimal ask;
 
+        public bool? TargetNullValue = null;
+        private decimal settlePercentDecimal;
+        private decimal priceTickSize;
+
         public ICommand HideCommand { get; set; }
 
         public ICommand CancelCommand { get; set; }
@@ -76,6 +106,7 @@ namespace BTNET.VM.ViewModels
         public ICommand BorrowForSettleToggleCommand { get; set; }
 
         public OrderDetailView? OrderDetail { get; set; }
+
 
         public OrderHelperViewModel(OrderSide side, TradingMode tradingMode, string symbol)
         {
@@ -91,15 +122,16 @@ namespace BTNET.VM.ViewModels
             BorrowForSettleToggleCommand = new DelegateCommand(BorrowForSettleOrder);
 
             DisplayTradingMode = OrderTradingMode == TradingMode.Spot
-                ? "Spot: " + symbol
+                ? SPOT + symbol
                 : OrderTradingMode == TradingMode.Margin
-                ? "Margin: " + symbol
+                ? MARGIN + symbol
                 : OrderTradingMode == TradingMode.Isolated
-                ? "Isolated: " + symbol
-                : "Error Don't Attempt Tasks!";
+                ? ISOLATED + symbol
+                : DONT_ATTEMPT_TASKS;
 
             _symbol = Static.ManageExchangeInfo.GetStoredSymbolInformation(symbol);
             StepSize = _symbol?.LotSizeFilter?.StepSize ?? App.DEFAULT_STEP;
+            PriceTickSizeScale = new DecimalHelper(_symbol?.PriceFilter?.TickSize.Normalize() ?? 4).Scale;
         }
 
         public OrderTasksViewModel OrderTasks
@@ -126,7 +158,15 @@ namespace BTNET.VM.ViewModels
 
         public bool IsNotSpot => OrderTradingMode != TradingMode.Spot;
 
-        public bool? TargetNullValue = null;
+        public decimal SettlePercentDecimal
+        {
+            get => settlePercentDecimal;
+            set
+            {
+                settlePercentDecimal = value;
+                PropChanged();
+            }
+        }
 
         public decimal StepSize
         {
@@ -134,6 +174,16 @@ namespace BTNET.VM.ViewModels
             set
             {
                 stepSize = value.Normalize();
+                PropChanged();
+            }
+        }
+
+        public decimal PriceTickSizeScale
+        {
+            get => priceTickSize;
+            set
+            {
+                priceTickSize = value;
                 PropChanged();
             }
         }
@@ -224,7 +274,7 @@ namespace BTNET.VM.ViewModels
                 {
                     if (_orderref.Status != OrderStatus.Filled)
                     {
-                        WriteLog.Error("OrderId: " + _orderref.OrderId + " with status [" + _orderref.Status + "] is not a valid order for this feature");
+                        WriteLog.Error(ORDER_ID + _orderref.OrderId + WITH_STATUS + _orderref.Status + NOT_VALID);
                     }
                     else
                     {
@@ -243,14 +293,14 @@ namespace BTNET.VM.ViewModels
 
                         if (total > 0)
                         {
-                            WriteLog.Info("OrderId: " + _orderref.OrderId + " | Total: " + total + " | Desired Settle %: " + SettlePercent + " | Current Pnl: " + _orderref.Pnl + " | Quantity Modifier: " + QuantityModifier + " | Cumulative: " + cumulative);
+                            WriteLog.Info(ORDER_ID + _orderref.OrderId + TOTAL + total + DESIRED_SETTLE + SettlePercent + CURRENT_PNL + _orderref.Pnl + QUAN_MODIFIER + QuantityModifier + CUMULATIVE + cumulative);
                             _settleLoop = true;
                             SettleLoop(total);
                             return;
                         }
                         else
                         {
-                            WriteLog.Info("OrderId: " + _orderref.OrderId + " | Total: " + total + " - An error occurred while trying to figure out the total");
+                            WriteLog.Info(ORDER_ID + _orderref.OrderId + TOTAL + total + ERROR_TOTAL);
                         }
                     }
                 }
@@ -273,7 +323,7 @@ namespace BTNET.VM.ViewModels
 
                 if (_orderref != null)
                 {
-                    WriteLog.Info("Settle Loop Stopped for Order: " + _orderref.OrderId);
+                    WriteLog.Info(SETTLE_LOOP_STOPPED + _orderref.OrderId);
                 }
             }
         }
@@ -306,7 +356,7 @@ namespace BTNET.VM.ViewModels
 
                         Static.SettledOrders.Add(_orderref.OrderId);
 
-                        WriteLog.Info("OrderId Settled: " + _orderref.OrderId + " | Total: " + total + " | Percent: " + percent + " | SettlePercent: " + SettlePercent + " | Pnl: " + _orderref.Pnl + " | Quantity Modifier: " + QuantityModifier);
+                        WriteLog.Info(SETTLE_ID + _orderref.OrderId + TOTAL + total + PERCENT + percent + SETTLEP + SettlePercent + PNL + _orderref.Pnl + QUAN_MODIFIER + QuantityModifier);
                         return;
                     }
                 }
@@ -349,7 +399,7 @@ namespace BTNET.VM.ViewModels
                         {
                             if (result.Result.Success)
                             {
-                                var t = "Order Cancelled:" + o.OrderId;
+                                var t = ORDER_CANCELLED + o.OrderId;
                                 WriteLog.Info(t);
                                 NotifyVM.Notification(t);
                                 o.Cancelled = true;
@@ -362,9 +412,8 @@ namespace BTNET.VM.ViewModels
                             }
                             else
                             {
-                                WriteLog.Info("Order Cancel Failed: " + o.OrderId);
-                                _ = MessageBox.Show($"Order canceling failed: {(result.Result.Error != null ? result.Result.Error?.Message : "Internal Error")}",
-                                    "Failed");
+                                WriteLog.Info(ORDER_CANCEL_FAILED_TWO + o.OrderId);
+                                _ = MessageBox.Show(ORDER_CANCEL_FAILED_TWO + $"{(result.Result.Error != null ? result.Result.Error?.Message : INTERNAL_ERROR)}", FAIL);
                             }
                         }
                     }
@@ -376,15 +425,15 @@ namespace BTNET.VM.ViewModels
             }
             else
             {
-                WriteLog.Info("Order Cancel Failed");
-                _ = MessageBox.Show($"Order canceling Failed", "Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                WriteLog.Info(ORDER_CANCEL_FAILED);
+                _ = MessageBox.Show(ORDER_CANCEL_FAILED, FAIL, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void HideOrder(OrderBase o)
         {
-            NotifyVM.Notification("Order Hidden: " + o.OrderId);
-            Deleted.HideOrder(o);
+            NotifyVM.Notification(ORDER_HIDDEN + o.OrderId);
+            Hidden.HideOrder(o);
         }
 
         public void ResetInterest(object o)
@@ -395,28 +444,30 @@ namespace BTNET.VM.ViewModels
 
         public void OrderOptions(object o)
         {
-            if (_orderref == null)
-            {
-                _orderref = (OrderBase)o;
-            }
+            ToggleOrderOptions(o);
+        }
+
+        public void ToggleOrderOptions(object o)
+        {
+            _orderref ??= (OrderBase)o;
 
             if (OrderDetail == null)
             {
-                OrderDetail = new OrderDetailView(_orderref);
-                OrderDetail.Show();
-            }
-            else
-            {
-                if (!OrderDetail.IsLoaded)
+                InvokeUI.CheckAccess(() =>
                 {
                     OrderDetail = new OrderDetailView(_orderref);
                     OrderDetail.Show();
-                    return;
-                }
+                });
+            }
+            else
+            {
+                OrderDetail.StopDetailTicker().ConfigureAwait(false);
 
+                InvokeUI.CheckAccess(() =>
+                {
+                    OrderDetail?.Close();
+                });
 
-                OrderDetail.StopDetailTicker();
-                OrderDetail?.Close();
                 OrderDetail = null;
             }
         }
@@ -429,7 +480,7 @@ namespace BTNET.VM.ViewModels
             set
             {
                 bid = value;
-                PropChanged("TickerPrice");
+                PropChanged(TICKER_PRICE);
             }
         }
 
@@ -439,7 +490,7 @@ namespace BTNET.VM.ViewModels
             set
             {
                 ask = value;
-                PropChanged("TickerPrice");
+                PropChanged(TICKER_PRICE);
             }
         }
     }

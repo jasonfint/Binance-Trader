@@ -72,5 +72,13 @@ namespace BTNET.VM.ViewModels
                 PropChanged();
             }
         }
+
+        public void Clear()
+        {
+            RealTimeVM.BidPrice = 0;
+            RealTimeVM.BidQuantity = 0;
+            RealTimeVM.AskPrice = 0;
+            RealTimeVM.AskQuantity = 0;
+        }
     }
 }

@@ -61,13 +61,9 @@ namespace BinanceAPI.SubClients.Spot
         /// <param name="type">The order type (limit/market)</param>
         /// <param name="timeInForce">Lifetime of the order (GoodTillCancel/ImmediateOrCancel)</param>
         /// <param name="quantity">The amount of the symbol</param>
-        /// <param name="quoteOrderQuantity">The amount of the quote symbol. Only valid for market orders</param>
         /// <param name="price">The price to use</param>
-        /// <param name="newClientOrderId">Unique id for order</param>
         /// <param name="stopPrice">Used for stop orders</param>
-        /// <param name="icebergQty">User for iceberg orders</param>
         /// <param name="orderResponseType">Used for the response JSON</param>
-        /// <param name="trailingDelta">Trailing delta value for order in BIPS. A value of 1 means 0.01% trailing delta.</param>
         /// <param name="receiveWindow">The receive window for which this request is active. When the request takes longer than this to complete the server will reject the request</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>Id's for the placed test order</returns>
@@ -75,32 +71,24 @@ namespace BinanceAPI.SubClients.Spot
             OrderSide side,
             OrderType type,
             decimal? quantity = null,
-            decimal? quoteOrderQuantity = null,
-            string? newClientOrderId = null,
             decimal? price = null,
             TimeInForce? timeInForce = null,
             decimal? stopPrice = null,
-            decimal? icebergQty = null,
             OrderResponseType? orderResponseType = null,
-            int? trailingDelta = null,
             int? receiveWindow = null,
             CancellationToken ct = default)
         {
-            return await _baseClient.PlaceOrderInternal(UriClient.GetBaseAddress() + UriClient.GetEndpoint.Order.Spot.POST_NEW_ORDER_TEST_NewOrderTest,
+            return await _baseClient.PlaceOrderInternalLimit(UriClient.GetBaseAddress() + UriClient.GetEndpoint.Order.Spot.POST_NEW_ORDER_TEST_NewOrderTest,
                 symbol,
                 side,
                 type,
                 quantity,
-                quoteOrderQuantity,
-                newClientOrderId,
                 price,
                 timeInForce,
                 stopPrice,
-                icebergQty,
                 null,
                 null,
                 orderResponseType,
-                trailingDelta,
                 receiveWindow,
                 ct).ConfigureAwait(false);
         }
@@ -118,51 +106,71 @@ namespace BinanceAPI.SubClients.Spot
         /// <param name="type">The order type</param>
         /// <param name="timeInForce">Lifetime of the order (GoodTillCancel/ImmediateOrCancel/FillOrKill)</param>
         /// <param name="quantity">The amount of the symbol</param>
-        /// <param name="quoteOrderQuantity">The amount of the quote symbol. Only valid for market orders</param>
         /// <param name="price">The price to use</param>
-        /// <param name="newClientOrderId">Unique id for order</param>
         /// <param name="stopPrice">Used for stop orders</param>
-        /// <param name="icebergQty">Used for iceberg orders</param>
         /// <param name="orderResponseType">Used for the response JSON</param>
-        /// <param name="trailingDelta">Trailing delta value for order in BIPS. A value of 1 means 0.01% trailing delta.</param>
         /// <param name="receiveWindow">The receive window for which this request is active. When the request takes longer than this to complete the server will reject the request</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>Id's for the placed order</returns>
-        public async Task<WebCallResult<BinancePlacedOrder>> PlaceOrderAsync(string symbol,
+        public async Task<WebCallResult<BinancePlacedOrder>> PlaceOrderLimitAsync(string symbol,
             OrderSide side,
             OrderType type,
             decimal? quantity = null,
-            decimal? quoteOrderQuantity = null,
-            string? newClientOrderId = null,
             decimal? price = null,
             TimeInForce? timeInForce = null,
             decimal? stopPrice = null,
-            decimal? icebergQty = null,
             OrderResponseType? orderResponseType = null,
-            int? trailingDelta = null,
             int? receiveWindow = null,
             CancellationToken ct = default)
         {
-            var result = await _baseClient.PlaceOrderInternal(UriClient.GetBaseAddress() + UriClient.GetEndpoint.Order.Spot.POST_NEW_ORDER_NewOrder,
+            return await _baseClient.PlaceOrderInternalLimit(UriClient.GetBaseAddress() + UriClient.GetEndpoint.Order.Spot.POST_NEW_ORDER_NewOrder,
                 symbol,
                 side,
                 type,
                 quantity,
-                quoteOrderQuantity,
-                newClientOrderId,
                 price,
                 timeInForce,
                 stopPrice,
-                icebergQty,
                 null,
                 null,
                 orderResponseType,
-                trailingDelta,
                 receiveWindow,
                 ct).ConfigureAwait(false);
-            if (result)
-                BinanceClientHost.OnOrderPlaced?.Invoke(null, result.Data);
-            return result;
+        }
+
+        /// <summary>
+        /// Places a new order
+        /// <para>[POST] https://binance-docs.github.io/apidocs/spot/en/#new-order-trade</para>
+        /// </summary>
+        /// <param name="symbol">The symbol the order is for</param>
+        /// <param name="side">The order side (buy/sell)</param>
+        /// <param name="type">The order type</param>
+        /// <param name="quantity">The amount of the symbol</param>
+        /// <param name="stopPrice">Used for stop orders</param>
+        /// <param name="orderResponseType">Used for the response JSON</param>
+        /// <param name="receiveWindow">The receive window for which this request is active. When the request takes longer than this to complete the server will reject the request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Id's for the placed order</returns>
+        public async Task<WebCallResult<BinancePlacedOrder>> PlaceOrderMarketAsync(string symbol,
+            OrderSide side,
+            OrderType type,
+            decimal? quantity = null,
+            decimal? stopPrice = null,
+            OrderResponseType? orderResponseType = null,
+            int? receiveWindow = null,
+            CancellationToken ct = default)
+        {
+            return await _baseClient.PlaceOrderInternalMarket(UriClient.GetBaseAddress() + UriClient.GetEndpoint.Order.Spot.POST_NEW_ORDER_NewOrder,
+                symbol,
+                side,
+                type,
+                quantity,
+                stopPrice,
+                null,
+                null,
+                orderResponseType,
+                receiveWindow,
+                ct).ConfigureAwait(false);
         }
 
         #endregion New Order
@@ -194,10 +202,7 @@ namespace BinanceAPI.SubClients.Spot
             parameters.AddOptionalParameter("newClientOrderId", newClientOrderId);
             parameters.AddOptionalParameter("recvWindow", receiveWindow?.ToString(CultureInfo.InvariantCulture) ?? _baseClient.DefaultReceiveWindow.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
 
-            var result = await _baseClient.SendRequestInternal<BinanceCanceledOrder>(UriClient.GetBaseAddress() + UriClient.GetEndpoint.Order.Spot.DELETE_CANCEL_ORDER_CancelOrder, HttpMethod.Delete, ct, parameters, true).ConfigureAwait(false);
-            if (result)
-                BinanceClientHost.OnOrderCanceled?.Invoke(null, result.Data);
-            return result;
+            return await _baseClient.SendRequestInternal<BinanceCanceledOrder>(UriClient.GetBaseAddress() + UriClient.GetEndpoint.Order.Spot.DELETE_CANCEL_ORDER_CancelOrder, HttpMethod.Delete, ct, parameters, true).ConfigureAwait(false);
         }
 
         #endregion Cancel Order

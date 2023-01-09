@@ -38,6 +38,7 @@
     Icon="/BV/Resources/log.png"
     ResizeMode="CanResizeWithGrip"
     SizeChanged="Window_SizeChanged"
+    ShowInTaskbar="False"
     WindowStyle="None">
 
     <WindowChrome.WindowChrome>

@@ -208,7 +208,7 @@ namespace BTNET.VM.ViewModels
 
             _ = Task.Run(() =>
             {
-                Tickers.AddTicker(AlertSymbol, Owner.AlertsPanel);
+                Tickers.AddTicker(AlertSymbol, Owner.AlertsPanel).ConfigureAwait(false);
 
                 WriteLog.Alert("-----------------------------Added Alert-----------------------------" + "\n" +
                                "Alert Price: " + AlertPrice + "| Alert Symbol: " + AlertSymbol + " | Repeat Interval:" + AlertInterval + "\n" +
@@ -223,9 +223,10 @@ namespace BTNET.VM.ViewModels
             var alert = o as AlertItem;
             if (alert != null)
             {
+                WriteLog.Info("Removed Alert for: " + alert.AlertSymbol + " at " + alert.AlertPrice);
+
                 InvokeUI.CheckAccess(() =>
                 {
-                    WriteLog.Info("Removed Alert for: " + alert.AlertSymbol + " at " + alert.AlertPrice);
                     Alerts.Remove(alert);
                 });
 

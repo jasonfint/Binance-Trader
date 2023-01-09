@@ -87,7 +87,7 @@ namespace BTNET.BVVM
                     LastIsolatedListenKeySymbol = symbol;
                     IsolatedListenKey = startOkay.Data.ToString();
 
-                    var subOkay = await Client.SocketClient.Spot.SubscribeToUserDataUpdatesAsync(startOkay.Data, Socket.OnOrderUpdateIsolated, null, Socket.OnAccountUpdateIsolated, null).ConfigureAwait(false);
+                    var subOkay = await Client.SocketClient.Spot.SubscribeToUserDataUpdatesAsync(startOkay.Data, Socket.OnOrderUpdateIsolated, Socket.OnAccountUpdateIsolated).ConfigureAwait(false);
                     if (subOkay.Success)
                     {
                         WriteLog.Info($"Subscribed to Isolated User Stream: " + startOkay.Data);
@@ -113,7 +113,7 @@ namespace BTNET.BVVM
                     WriteLog.Info($"Started Margin User Stream: " + startOkay.Data);
                     MarginListenKey = startOkay.Data.ToString();
 
-                    var subOkay = await Client.SocketClient.Spot.SubscribeToUserDataUpdatesAsync(startOkay.Data, Socket.OnOrderUpdateMargin, null, Socket.OnAccountUpdateMargin, null).ConfigureAwait(false);
+                    var subOkay = await Client.SocketClient.Spot.SubscribeToUserDataUpdatesAsync(startOkay.Data, Socket.OnOrderUpdateMargin, Socket.OnAccountUpdateMargin).ConfigureAwait(false);
                     if (subOkay.Success)
                     {
                         WriteLog.Info($"Subscribed to Margin User Stream: " + startOkay.Data);
@@ -139,7 +139,7 @@ namespace BTNET.BVVM
                     WriteLog.Info($"Started Spot User Stream: " + startOkay.Data);
                     SpotListenKey = startOkay.Data.ToString();
 
-                    var subOkay = await Client.SocketClient.Spot.SubscribeToUserDataUpdatesAsync(startOkay.Data, Socket.OnOrderUpdateSpot, null, Socket.OnAccountUpdateSpot, null).ConfigureAwait(false);
+                    var subOkay = await Client.SocketClient.Spot.SubscribeToUserDataUpdatesAsync(startOkay.Data, Socket.OnOrderUpdateSpot, Socket.OnAccountUpdateSpot).ConfigureAwait(false);
                     if (subOkay.Success)
                     {
                         LastUserStreamKeepAlive = DateTime.UtcNow;

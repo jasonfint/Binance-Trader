@@ -216,7 +216,7 @@ namespace BTNET.BVVM.BT.Orders
             WriteLog.Info("Symbol: " + order.Symbol + " | Filled: " + order.QuantityFilled + " | OrderPadding: " + quantitypadding + " | Price: " + order.Price + " | Mode: " + tradingMode + " | Borrow: " + borrow + " | Side: " + orderSide);
 #endif
 
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 var symbolInfo = StoredExchangeInfo.Get().Symbols.SingleOrDefault(r => r.Name == order.Symbol);
 
@@ -236,13 +236,15 @@ namespace BTNET.BVVM.BT.Orders
 
                 var newOrderQuantity = order.QuantityFilled + quantitypadding;
 
-                await Trade.PlaceOrderAsync(order.Symbol, newOrderQuantity, tradingMode, borrow, orderSide).ConfigureAwait(false);
+                // Add to Queue
+                TradeVM.TradeRunner.AddToQueue(order.Symbol, newOrderQuantity, 0, tradingMode, borrow, orderSide, false);
 
                 if (!settle)
                 {
                     return;
                 }
 
+                // Wait for Queue
                 var startTime = DateTime.UtcNow.Ticks;
                 while (await Loop.Delay(startTime, DELAY_MS, EXPIRE_TIME).ConfigureAwait(false))
                 {

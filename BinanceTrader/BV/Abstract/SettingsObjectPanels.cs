@@ -32,7 +32,10 @@ namespace BTNET.BV.Abstract
             double panelRealTimeLeft, double panelRealTimeTop,
             double panelBorrowBoxLeft, double panelBorrowBoxTop,
             double panelMarginInfoLeft, double panelMarginInfoTop,
-            double orderListHeight)
+            double orderListHeight,
+            double panelTradeInfoLeft, double panelTradeInfoTop,
+            double panelScraperLeft, double panelScraperTop,
+            double panelInsightsLeft, double panelInsightsTop)
         {
             PanelBreakdownLeft = panelBreakdownLeft;
             PanelBreakdownTop = panelBreakdownTop;
@@ -50,7 +53,25 @@ namespace BTNET.BV.Abstract
             PanelMarginInfoTop = panelMarginInfoTop;
 
             OrderListHeight = orderListHeight;
+
+            PanelTradeInfoleft = panelTradeInfoLeft;
+            PanelTradeInfoTop = panelTradeInfoTop;
+
+            PanelScraperLeft = panelScraperLeft;
+            PanelScraperTop = panelScraperTop;
+
+            PanelInsightsLeft = panelInsightsLeft;
+            PanelInsightsTop = panelInsightsTop;
         }
+
+        public double? PanelInsightsLeft { get; set; }
+        public double? PanelInsightsTop { get; set; }
+
+        public double? PanelScraperLeft { get; set; }
+        public double? PanelScraperTop { get; set; }
+
+        public double? PanelTradeInfoleft { get; set; }
+        public double? PanelTradeInfoTop { get; set; }
 
         public double? PanelBreakdownLeft { get; set; }
         public double? PanelBreakdownTop { get; set; }

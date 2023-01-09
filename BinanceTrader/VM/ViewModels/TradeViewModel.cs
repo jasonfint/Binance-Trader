@@ -28,12 +28,17 @@ using BTNET.BVVM.BT;
 using BTNET.BVVM.Helpers;
 using BTNET.BVVM.Log;
 using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace BTNET.VM.ViewModels
 {
     public class TradeViewModel : Core
     {
+        private const string UNEXPECTED_EXCEPTION = "Selected Tab Error: Unexpected Exception";
+        private const string PROP_CHANGED_USE_LIMIT_BUY = "UseLimitBuy";
+        private const string PROP_CHANGED_USE_LIMIT_SELL = "UseLimitSell";
+
         private decimal symbolPriceBuy;
         private decimal symbolPriceSell;
         private decimal orderQuantity;
@@ -49,6 +54,8 @@ namespace BTNET.VM.ViewModels
 
         public ICommand? SellBaseFreeAndClearCommand { get; set; }
 
+        public TradeRunner TradeRunner = new TradeRunner();
+
         public void InitializeCommands()
         {
             UseLimitToggleCommand = new DelegateCommand(UseLimitToggleBasedOnTab);
@@ -57,6 +64,7 @@ namespace BTNET.VM.ViewModels
             SellCommand = new DelegateCommand(Sell);
             SellBaseFreeCommand = new DelegateCommand(SellBaseFree);
             SellBaseFreeAndClearCommand = new DelegateCommand(SellBaseFreeAndClear);
+            TradeRunner.Start();
         }
 
         public bool UseLimitCheckboxToggle
@@ -131,12 +139,18 @@ namespace BTNET.VM.ViewModels
 
         public void SellBaseFree(object o)
         {
-            Trade.SellAllFreeBase();
+            _ = Task.Run(() =>
+            {
+                Trade.SellAllFreeBase();
+            }).ConfigureAwait(false);
         }
 
         public void SellBaseFreeAndClear(object o)
         {
-            Trade.SellAllFreeBaseAndClear();
+            _ = Task.Run(() =>
+            {
+                Trade.SellAllFreeBaseAndClear();
+            }).ConfigureAwait(false);
         }
 
         public void TradeVMOnTabChanged(object sender, EventArgs args)
@@ -155,7 +169,7 @@ namespace BTNET.VM.ViewModels
                     break;
 
                 default:
-                    WriteLog.Error("Selected Tab Error: Unexpected Exception");
+                    WriteLog.Error(UNEXPECTED_EXCEPTION);
                     break;
             }
         }
@@ -169,12 +183,10 @@ namespace BTNET.VM.ViewModels
 
                 case SelectedTab.Buy:
                     UseLimitBuyBool = !UseLimitBuyBool;
-                    PropChanged("UseLimitBuy");
                     break;
 
                 case SelectedTab.Sell:
                     UseLimitSellBool = !UseLimitSellBool;
-                    PropChanged("UseLimitSell");
                     break;
             }
         }

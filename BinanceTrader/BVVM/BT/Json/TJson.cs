@@ -27,7 +27,7 @@ namespace TJson.NET
         public static bool Save<T>(T objectBeingStored, string filePath, JsonSerializerSettings? jsonSerializerSettings = null, bool backup = true)
         {
             try
-            {         
+            {
                 if (objectBeingStored != null)
                 {
                     jsonSerializerSettings ??= SerializerSettings;
@@ -54,7 +54,7 @@ namespace TJson.NET
             }
             catch
             {
-                return false;                
+                return false;
             }
 
             return false;
@@ -76,7 +76,7 @@ namespace TJson.NET
             {
                 bool attempt = false;
                 jsonSerializerSettings ??= SerializerSettings;
-                
+
                 try
                 {
                     return DeserializedObjectOrDefault<T>(shouldBeOneDimensional, filePath, jsonSerializerSettings);
@@ -87,7 +87,7 @@ namespace TJson.NET
                     {
                         attempt = Backup.RestoreBackup(filePath);
                     }
-                }                
+                }
 
                 if (attempt && restore)
                 {
@@ -97,7 +97,7 @@ namespace TJson.NET
                     }
                     catch
                     {
-                        return default;                        
+                        return default;
                     }
                 }
             }
@@ -108,7 +108,7 @@ namespace TJson.NET
         public static T? DeserializedObjectOrDefault<T>(bool shouldBeOneDimensional, string filePath, JsonSerializerSettings? jsonSerializerSettings = null)
         {
             try
-            {               
+            {
                 string serializedText = File.ReadAllText(filePath).Normalize();
                 if (serializedText != null && serializedText != "")
                 {

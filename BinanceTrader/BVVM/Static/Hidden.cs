@@ -24,28 +24,38 @@
 
 using BTNET.BV.Base;
 using BTNET.BVVM.Helpers;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace BTNET.BVVM
 {
-    internal class Deleted : Core
+    internal class Hidden : Core
     {
         public static bool IsHideTriggered = false;
 
+        public static bool IsStatusTriggered = false;
+
         public static void HideOrder(OrderBase order)
         {
-            order.IsOrderHidden = true;
+            InvokeUI.CheckAccess(() =>
+            {
+                order.IsOrderHidden = true;
+            });
+
             Static.ManageStoredOrders.AddSingleOrderToMemoryStorage(order, true);
             IsHideTriggered = true;
         }
 
-        public static void HideOrderBulk(Collection<OrderBase> orders)
+        public static void HideOrderBulk(IEnumerable<OrderBase> orders)
         {
             foreach (OrderBase order in orders)
             {
-                order.IsOrderHidden = true;
+                InvokeUI.CheckAccess(() =>
+                {
+                    order.IsOrderHidden = true;
+                });
+
                 Static.ManageStoredOrders.AddSingleOrderToMemoryStorage(order, true);
             }
 
@@ -56,16 +66,18 @@ namespace BTNET.BVVM
         /// Enumerate the Deleted List
         /// </summary>
         /// <param name="Orders"></param>
-        public static Task EnumerateHiddenOrdersAsync(ObservableCollection<OrderBase>? Orders)
+        public static Task EnumerateHiddenOrdersAsync()
         {
             if (Orders == null)
             {
                 return Task.CompletedTask;
             }
 
-            foreach (var r in Orders.ToList())
+            lock (MainOrders.OrderUpdateLock)
             {
-                if (r.IsOrderHidden)
+                List<OrderBase> copy = Orders.Current.ToList();
+
+                foreach (var r in copy.Where(r => r.IsOrderHidden))
                 {
                     InvokeUI.CheckAccess(() =>
                     {
@@ -75,7 +87,7 @@ namespace BTNET.BVVM
                             r.Helper.SettleControlsEnabled = false;
                         }
 
-                        _ = Orders.Remove(r);
+                        Orders.Current.Remove(r);
                     });
                 }
             }

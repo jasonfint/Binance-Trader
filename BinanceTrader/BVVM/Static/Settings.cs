@@ -29,8 +29,9 @@ using BinanceAPI.Objects;
 using BTNET.BV.Abstract;
 using BTNET.BV.Enum;
 using BTNET.BVVM.Helpers;
-using BTNET.BVVM.Log;
 using BTNET.BVVM.Identity;
+using BTNET.BVVM.Identity.Structs;
+using BTNET.BVVM.Log;
 using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
@@ -40,7 +41,6 @@ using System.Security;
 using System.Threading;
 using System.Windows;
 using Json = TJson.NET.Json;
-using BTNET.BVVM.Identity.Structs;
 
 namespace BTNET.BVVM
 {
@@ -91,6 +91,7 @@ namespace BTNET.BVVM
         private const string TEST_SYMBOL = "BTCUSDT";
         private const int TEST_ORDER_QUANTITY = 1;
 
+        private const double DEFAULT_WATCHLIST_HEIGHT = 200;
         private const double DEFAULT_ORDER_OPACITY = 0.7;
         private const int RECV_WINDOW_SECONDS = 1;
 
@@ -237,25 +238,27 @@ namespace BTNET.BVVM
 
                 if (results != null)
                 {
-                    SettingsVM.ShowBorrowInfoIsChecked = results.ShowBorrowInfoIsChecked ?? true;
-                    SettingsVM.ShowSymbolInfoIsChecked = results.ShowSymbolInfoIsChecked ?? true;
-                    SettingsVM.ShowMarginInfoIsChecked = results.ShowMarginInfoIsChecked ?? true;
-                    SettingsVM.ShowIsolatedInfoIsChecked = results.ShowIsolatedInfoIsChecked ?? true;
-                    SettingsVM.ShowBreakDownInfoIsChecked = results.ShowBreakDownInfoIsChecked ?? true;
-                    SettingsVM.TransparentTitleBarIsChecked = results.TransparentTitleIsChecked ?? false;
-                    SettingsVM.OrderOpacity = results.OrderOpacity ?? DEFAULT_ORDER_OPACITY;
-                    SettingsVM.CheckForUpdatesIsChecked = results.CheckForUpdates ?? false;
-                    SettingsVM.RealTimeModeIsChecked = results.RealTimeMode ?? false;
-                    SettingsVM.AutoSaveIsChecked = results.AutoSaveSettings ?? false;
-                    SettingsVM.KeepFirstOrderIsChecked = results.KeepFirstOrder ?? true;
+                    SettingsVM.ShowBorrowInfoIsChecked = SettingOrDefault(results.ShowBorrowInfoIsChecked, true);
+                    SettingsVM.ShowSymbolInfoIsChecked = SettingOrDefault(results.ShowSymbolInfoIsChecked, true);
+                    SettingsVM.ShowMarginInfoIsChecked = SettingOrDefault(results.ShowMarginInfoIsChecked, true);
+                    SettingsVM.ShowIsolatedInfoIsChecked = SettingOrDefault(results.ShowIsolatedInfoIsChecked, true);
+                    SettingsVM.ShowBreakDownInfoIsChecked = SettingOrDefault(results.ShowBreakDownInfoIsChecked, true);
+                    SettingsVM.TransparentTitleBarIsChecked = SettingOrDefault(results.TransparentTitleIsChecked, false);
+                    SettingsVM.DangerousButtonsIsChecked = SettingOrDefault(results.DangerousButtonsIsChecked, false);
+                    SettingsVM.CheckForUpdatesIsChecked = SettingOrDefault(results.CheckForUpdates, false);
+                    SettingsVM.AutoSaveIsChecked = SettingOrDefault(results.AutoSaveSettings, false);
+                    SettingsVM.KeepFirstOrderIsChecked = SettingOrDefault(results.KeepFirstOrder, true);
+                    SettingsVM.ShowScraperButtonIsChecked = SettingOrDefault(results.ShowScraperButtonIsChecked, false);
 
-                    TradeVM.UseLimitBuyBool = results.BuyLimitChecked ?? false;
-                    TradeVM.UseLimitSellBool = results.SellLimitChecked ?? false;
+                    VisibilityVM.WatchListHeight = SettingOrDefault(results.WatchListHeight, DEFAULT_WATCHLIST_HEIGHT);
 
-                    BorrowVM.BorrowBuy = results.BuyBorrowChecked ?? false;
-                    BorrowVM.BorrowSell = results.SellBorrowChecked ?? false;
+                    TradeVM.UseLimitBuyBool = SettingOrDefault(results.BuyLimitChecked, false);
+                    TradeVM.UseLimitSellBool = SettingOrDefault(results.SellLimitChecked, false);
 
-                    SettingsVM.DisableOpacityIsChecked = results.DisableOpacity ?? false;
+                    BorrowVM.BorrowBuy = SettingOrDefault(results.BuyBorrowChecked, false);
+                    BorrowVM.BorrowSell = SettingOrDefault(results.SellBorrowChecked, false);
+
+                    SettingsVM.DisableOpacityIsChecked = SettingOrDefault(results.DisableOpacity, false);
 
                     SettingsVM.ConfigureTitleBar();
                 }
@@ -266,23 +269,55 @@ namespace BTNET.BVVM
                 SettingsObjectPanels? results = Json.Load<SettingsObjectPanels>(App.SettingsPanels);
                 if (results != null)
                 {
-                    VisibilityVM.PanelBorrowBoxLeft = results.PanelBorrowBoxLeft ?? 10;
-                    VisibilityVM.PanelBorrowBoxTop = results.PanelBorrowBoxTop ?? -170;
+                    VisibilityVM.PanelBorrowBoxLeft = SettingOrDefault(results.PanelBorrowBoxLeft, 10);
+                    VisibilityVM.PanelBorrowBoxTop = SettingOrDefault(results.PanelBorrowBoxTop, -170);
 
-                    VisibilityVM.PanelBreakdownLeft = results.PanelBreakdownLeft ?? 10;
-                    VisibilityVM.PanelBreakdownTop = results.PanelBreakdownTop ?? -265;
+                    VisibilityVM.PanelBreakdownLeft = SettingOrDefault(results.PanelBreakdownLeft, 10);
+                    VisibilityVM.PanelBreakdownTop = SettingOrDefault(results.PanelBreakdownTop, -279);
 
-                    VisibilityVM.PanelRealTimeLeft = results.PanelRealTimeLeft ?? 1055;
-                    VisibilityVM.PanelRealTimeTop = results.PanelRealTimeTop ?? -400;
+                    VisibilityVM.PanelRealTimeLeft = SettingOrDefault(results.PanelRealTimeLeft, 1055);
+                    VisibilityVM.PanelRealTimeTop = SettingOrDefault(results.PanelRealTimeTop, -400);
 
-                    VisibilityVM.PanelMarginInfoLeft = results.PanelMarginInfoLeft ?? 113;
-                    VisibilityVM.PanelMarginInfoTop = results.PanelMarginInfoTop ?? -170;
+                    VisibilityVM.PanelMarginInfoLeft = SettingOrDefault(results.PanelMarginInfoLeft, 113);
+                    VisibilityVM.PanelMarginInfoTop = SettingOrDefault(results.PanelMarginInfoTop, -170);
 
-                    VisibilityVM.PanelInfoBoxLeft = results.PanelInfoBoxLeft ?? 10;
-                    VisibilityVM.PanelInfoBoxTop = results.PanelInfoBoxTop ?? -370;
+                    VisibilityVM.PanelInfoBoxLeft = SettingOrDefault(results.PanelInfoBoxLeft, 10);
+                    VisibilityVM.PanelInfoBoxTop = SettingOrDefault(results.PanelInfoBoxTop, -385);
 
-                    VisibilityVM.OrderListHeight = results.OrderListHeight ?? 80;
-                    VisibilityVM.OrderListHeightMax = results.OrderListHeight ?? 80;
+                    VisibilityVM.OrderListHeight = SettingOrDefault(results.OrderListHeight, 80);
+
+                    VisibilityVM.TradeInfoLeft = SettingOrDefault(results.PanelTradeInfoleft, 10);
+                    VisibilityVM.TradeInfoTop = SettingOrDefault(results.PanelTradeInfoTop, -578);
+
+                    VisibilityVM.ScraperLeft = SettingOrDefault(results.PanelScraperLeft, 10);
+                    VisibilityVM.ScraperTop = SettingOrDefault(results.PanelScraperTop, -805);
+
+                    VisibilityVM.InsightsPanelLeft = SettingOrDefault(results.PanelInsightsLeft, 566);
+                    VisibilityVM.InsightsPanelTop = SettingOrDefault(results.PanelInsightsTop, -577);
+                }
+            }
+
+            if (File.Exists(App.SettingsScraper))
+            {
+                SettingsObjectScraper? results = Json.Load<SettingsObjectScraper>(App.SettingsScraper);
+                if (results != null)
+                {
+                    ScraperVM.PriceBias = SettingOrDefault(results.PriceBias, 200);
+                    ScraperVM.SellPercent = SettingOrDefault(results.SellPercent, 0.14m);
+                    ScraperVM.ReverseDownPercent = SettingOrDefault(results.DownPercent, 0.042m);
+                    ScraperVM.WaitTime = SettingOrDefault(results.WaitTime, 200);
+                    ScraperVM.WaitTimeCount = SettingOrDefault(results.WaitCount, 7);
+
+                    ScraperVM.ScraperCounter.GuesserResetShortCountUp = SettingOrDefault(results.ResetUpS, 1250);
+                    ScraperVM.ScraperCounter.GuesserResetShortCountDown = SettingOrDefault(results.ResetDownS, 1250);
+                    ScraperVM.ScraperCounter.GuesserDivPercent = SettingOrDefault(results.DivPercent, 30);
+                    ScraperVM.ScraperCounter.GuesserResetLongCountUp = SettingOrDefault(results.ResetUpL, 2500);
+                    ScraperVM.ScraperCounter.GuesserResetLongCountDown = SettingOrDefault(results.ResetDownL, 2500);
+                    ScraperVM.ScraperCounter.GuesserResetTime = SettingOrDefault(results.ResetTime, 15);
+                    ScraperVM.ScraperCounter.GuesserResetTimeBias = SettingOrDefault(results.TimeBias, 5);
+                    ScraperVM.ScraperCounter.GuesserUpBias = SettingOrDefault(results.UpBias, 1.7m);
+                    ScraperVM.ScraperCounter.GuesserDownBias = SettingOrDefault(results.DownBias, 1.7m);
+                    ScraperVM.ScraperCounter.GuesserDeadTime = SettingOrDefault(results.DeadTime, 100);
                 }
             }
         }
@@ -482,15 +517,8 @@ namespace BTNET.BVVM
                     // Shutting Down
                 }
 
-                try
-                {
-                    SaveSettings(false);
-                }
-                catch
-                {
-                    // Shutting Down
-                }
-
+                SaveSettings(false);
+                Thread.Sleep(500);
                 Goodbye("Exiting, Goodbye..");
             }
             catch (Exception ex)
@@ -499,6 +527,7 @@ namespace BTNET.BVVM
             }
             finally
             {
+                Thread.Sleep(500);
                 Goodbye("Exiting with Exceptions, Goodbye..");
             }
         }
@@ -534,7 +563,6 @@ namespace BTNET.BVVM
                     WriteLog.Info("Storing Orders..");
                 }
 
-                Static.ManageStoredOrders.AddOrderUpdatesToMemoryStorage(Orders.Current.ToList(), true);
                 Static.ManageStoredOrders.SaveAll();
 
                 if (!quiet)
@@ -542,9 +570,16 @@ namespace BTNET.BVVM
                     WriteLog.Info("Storing Quotes..");
                 }
 
-                Quotes.AddStoredQuote();
+                try
+                {
+                    Quotes.AddStoredQuote();
 
-                Json.Save(Stored.Quotes, App.StoredQuotes);
+                    Json.Save(Stored.Quotes, App.StoredQuotes);
+                }
+                catch (Exception ex)
+                {
+                    WriteLog.Error(ex);
+                }
 
                 if (!Core.MainVM.IsWatchlistStillLoading)
                 {
@@ -561,8 +596,55 @@ namespace BTNET.BVVM
         private static void Goodbye(string m)
         {
             WriteLog.Info(m);
-            Thread.Sleep(1);
             Environment.Exit(0);
+        }
+
+        public static bool SettingOrDefault(bool? setting, bool def)
+        {
+            if (setting != null)
+            {
+                return setting.Value;
+            }
+            else
+            {
+                return def;
+            }
+        }
+
+        public static int SettingOrDefault(int? setting, int def)
+        {
+            if (setting != null && setting != 0)
+            {
+                return setting.Value;
+            }
+            else
+            {
+                return def;
+            }
+        }
+
+        public static double SettingOrDefault(double? setting, double def)
+        {
+            if (setting != null && setting != 0)
+            {
+                return setting.Value;
+            }
+            else
+            {
+                return def;
+            }
+        }
+
+        private static decimal SettingOrDefault(decimal? setting, decimal def)
+        {
+            if (setting != null && setting != 0)
+            {
+                return setting.Value;
+            }
+            else
+            {
+                return def;
+            }
         }
     }
 }

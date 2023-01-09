@@ -28,7 +28,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:BTNET.BV.Converters"
     xmlns:xctk="clr-namespace:BTNET.Toolkit"
-    xmlns:z="http://schemas.microsoft.com/xaml/behaviors"
     Name="TabC">
 
     <UserControl.Resources>
@@ -43,7 +42,7 @@
             Height="46"
             Background="Black"
             FontSize="12"
-            Opacity="{Binding MainVM.Opacity, Mode=TwoWay}"
+            Opacity="{Binding SettingsVM.Opacity}"
             SelectedIndex="{Binding MainVM.SelectedTabUI, Mode=TwoWay}"
             UseLayoutRounding="True">
             <TabControl.BorderBrush>
@@ -70,9 +69,9 @@
                         IsEnabled="false"
                         Maximum="{Binding QuoteVM.PriceMax}"
                         Minimum="{Binding QuoteVM.PriceMin}"
-                        Opacity="0.80"
+                        Opacity="{Binding SettingsVM.Opacity}"
                         Value="{Binding QuoteVM.TradeAmountBuy}"
-                        FormatString="{Binding QuoteVM.StringFormatQuantityTickSize}">
+                        FormatString="{Binding QuoteVM.StringFormatQuotePriceTickSize}">
                     </xctk:DecimalUpDown>
                     <TextBlock
                         Margin="3,0,3,0"
@@ -87,7 +86,7 @@
                         TabIndex="0"
                         Maximum="{Binding QuoteVM.QuantityMax}"
                         Minimum="{Binding QuoteVM.QuantityMin}"
-                        Opacity="0.80"
+                        Opacity="{Binding SettingsVM.Opacity}"
                         Value="{Binding QuoteVM.ObserveQuoteOrderQuantityLocalBuy, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     </xctk:DecimalUpDown>
                     <TextBlock
@@ -104,7 +103,7 @@
                         IsEnabled="{Binding TradeVM.UseLimitBuyBool, Mode=OneWay}"
                         Maximum="{Binding QuoteVM.PriceMax}"
                         Minimum="{Binding QuoteVM.PriceMin}"
-                        Opacity="0.80"
+                        Opacity="{Binding SettingsVM.Opacity}"
                         Value="{Binding TradeVM.SymbolPriceBuy}"
                         FormatString="{Binding QuoteVM.StringFormatPriceTickSize}"/>
                     <Button
@@ -161,9 +160,9 @@
                         IsEnabled="false"
                         Maximum="{Binding QuoteVM.PriceMax}"
                         Minimum="{Binding QuoteVM.PriceMin}"
-                        Opacity="0.80"
+                        Opacity="{Binding SettingsVM.Opacity}"
                         Value="{Binding QuoteVM.TradeAmountSell, Mode=TwoWay}"
-                        FormatString="{Binding QuoteVM.StringFormatQuantityTickSize}">
+                        FormatString="{Binding QuoteVM.StringFormatQuotePriceTickSize}">
                     </xctk:DecimalUpDown>
                     <TextBlock
                         Margin="3,0,3,0"
@@ -178,7 +177,7 @@
                         Maximum="{Binding QuoteVM.QuantityMax}"
                         Minimum="{Binding QuoteVM.QuantityMin}"
                         TabIndex="0"
-                        Opacity="0.80"
+                        Opacity="{Binding SettingsVM.Opacity}"
                         Value="{Binding QuoteVM.ObserveQuoteOrderQuantityLocalSell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     </xctk:DecimalUpDown>
                     <TextBlock
@@ -195,7 +194,7 @@
                         IsEnabled="{Binding TradeVM.UseLimitSellBool}"
                         Maximum="{Binding QuoteVM.PriceMax}"
                         Minimum="{Binding QuoteVM.PriceMin}"
-                        Opacity="0.80"
+                        Opacity="{Binding SettingsVM.Opacity}"
                         Value="{Binding TradeVM.SymbolPriceSell}" 
                         FormatString="{Binding QuoteVM.StringFormatPriceTickSize}"/>
                     <Button
@@ -249,7 +248,7 @@
                         Command="{Binding SettleVM.SettleQuoteCommand}"
                         Content="{Binding BorrowVM.BorrowLabelQuote, FallbackValue=Error}"
                         IsEnabled="{Binding SettleVM.CanRepayQuote}"
-                        Opacity="0.85"
+                        Opacity="{Binding SettingsVM.Opacity}"
                         ToolTip="Settle the Max Free amount of the Quote Asset" />
                     <Button
                         Margin="2,0,2,0"
@@ -259,7 +258,7 @@
                         Command="{Binding SettleVM.SettleBaseCommand}"
                         Content="{Binding BorrowVM.BorrowLabelBase, FallbackValue=Loading}"
                         IsEnabled="{Binding SettleVM.CanRepayBase}"
-                        Opacity="0.85"
+                        Opacity="{Binding SettingsVM.Opacity}"
                         ToolTip="Settle the Max Free amount of the Base Asset" />
                     <Button
                         Padding="4,0,4,0"
@@ -268,7 +267,7 @@
                         Command="{Binding SettleVM.SettleAllCommand}"
                         Content="{Binding CurrentlySelectedSymbol.SymbolView.Symbol, FallbackValue=Error}"
                         IsEnabled="{Binding SettleVM.CanRepayAll}"
-                        Opacity="0.85"
+                        Opacity="{Binding SettingsVM.Opacity}"
                         ToolTip="Settle the Max Free amount of Both Symbol Assets (Base and Quote)" />
                 </StackPanel>
             </TabItem>
@@ -278,11 +277,10 @@
             Visibility="{Binding VisibilityVM.OrderSettingsVisibility, Converter={StaticResource BoolToVis}, UpdateSourceTrigger=PropertyChanged}"
             Margin="5,20,0,0"
             VerticalAlignment="Center"
-            Opacity="{Binding SettingsVM.OrderOpacity}">
+            Opacity="{Binding SettingsVM.Opacity}">
             <Border
                 Background="Black"
                 Width="0"
-                Opacity="0.75"
                 CornerRadius="3"
                 BorderThickness="1"
                 Padding="2"
@@ -297,7 +295,7 @@
                         Command="{Binding BorrowVM.BorrowToggleCommand}"
                         Content="Borrow"
                         IsChecked="{Binding BorrowVM.BorrowCheckboxToggle, Mode=OneWay}"
-                        Opacity="0.85"
+                        Opacity="{Binding SettingsVM.Opacity}"
                         ToolTip="Tick to Borrow funds where available" />
                     <CheckBox
                         Margin="1,0,0,0"
@@ -307,7 +305,7 @@
                         Command="{Binding TradeVM.UseLimitToggleCommand}"
                         Content="Limit"
                         IsChecked="{Binding TradeVM.UseLimitCheckboxToggle, Mode=OneWay}"
-                        Opacity="0.85"
+                        Opacity="{Binding SettingsVM.Opacity}"
                         ToolTip="Tick to place Limit Sell Orders instead of Market Orders &#x0a;(Use Price you Choose and Exact Quantity)" />
                 </StackPanel>
             </Border>

@@ -23,18 +23,12 @@
 */
 
 using BTNET.BV.Abstract;
-using BTNET.BV.Base;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace BTNET.BVVM
 {
     public static class Stored
     {
-        public static List<OrderBase> ToS { get; set; } = new();
-        public static List<OrderBase> ToM { get; set; } = new();
-        public static List<OrderBase> ToI { get; set; } = new();
-
         public static ObservableCollection<SavedQuote> Quotes { get; set; } = new();
     }
 }

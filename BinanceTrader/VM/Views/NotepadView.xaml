@@ -34,6 +34,7 @@
     Height="220"
     MinWidth="150"
     MinHeight="50"
+    ShowInTaskbar="False"
     MaxWidth="1100"
     Background="Black"
     Icon="/BV/Resources/notepad.png"

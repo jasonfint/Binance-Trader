@@ -22,32 +22,40 @@
 *SOFTWARE.
 */
 
+using BinanceAPI;
+using BinanceAPI.Objects.Spot.MarketData;
 using BTNET.BVVM;
 using BTNET.BVVM.BT;
 using BTNET.BVVM.BT.Args;
+using BTNET.BVVM.Helpers;
 using BTNET.BVVM.Log;
 using System;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 namespace BTNET.BV.Base
 {
     public class WatchlistItem : Core
     {
-        private string? watchlistSymbol;
-        private decimal watchlistPrice;
-        private decimal watchListBid;
-        private decimal watchlistAsk;
-        private decimal watchlistHigh;
-        private decimal watchlistLow;
-        private decimal watchlistClose;
+        private static readonly string STATUS_PROP_CHANGED = "Status";
+        private static readonly string WAITING = "Waiting";
+        private static readonly string FORMAT = "#,0.00##########";
+
+        private string? watchlistSymbol = WAITING;
+        private string watchlistPrice = WAITING;
+        private string watchListBid = WAITING;
+        private string watchlistAsk = WAITING;
+        private string watchlistHigh = WAITING;
+        private string watchlistLow = WAITING;
+        private string watchlistClose = WAITING;
         private decimal watchlistChange;
         private decimal watchlistVolume;
         private int tickerStatus;
+        private string stringFormat = FORMAT;
 
-        public WatchlistItem(string watchlistSymbol)
+        public WatchlistItem(BinanceSymbol s)
         {
-            WatchlistSymbol = watchlistSymbol;
+            WatchlistSymbol = s.Name;
+            WatchlistStringFormat = General.StringFormat(new DecimalHelper(s.PriceFilter?.TickSize.Normalize() ?? 0).Scale);
         }
 
         public string? WatchlistSymbol
@@ -60,7 +68,7 @@ namespace BTNET.BV.Base
             }
         }
 
-        public decimal WatchlistPrice
+        public string WatchlistPrice
         {
             get => watchlistPrice;
             set
@@ -70,7 +78,7 @@ namespace BTNET.BV.Base
             }
         }
 
-        public decimal WatchlistBidPrice
+        public string WatchlistBidPrice
         {
             get => watchListBid;
             set
@@ -80,7 +88,7 @@ namespace BTNET.BV.Base
             }
         }
 
-        public decimal WatchlistAskPrice
+        public string WatchlistAskPrice
         {
             get => watchlistAsk;
             set
@@ -90,7 +98,7 @@ namespace BTNET.BV.Base
             }
         }
 
-        public decimal WatchlistHigh
+        public string WatchlistHigh
         {
             get => watchlistHigh;
             set
@@ -100,7 +108,7 @@ namespace BTNET.BV.Base
             }
         }
 
-        public decimal WatchlistLow
+        public string WatchlistLow
         {
             get => watchlistLow;
             set
@@ -110,7 +118,7 @@ namespace BTNET.BV.Base
             }
         }
 
-        public decimal WatchlistClose
+        public string WatchlistClose
         {
             get => watchlistClose;
             set
@@ -147,7 +155,17 @@ namespace BTNET.BV.Base
             {
                 tickerStatus = value;
                 PropChanged();
-                PropChanged("Status");
+                PropChanged(STATUS_PROP_CHANGED);
+            }
+        }
+
+        public string WatchlistStringFormat
+        {
+            get => stringFormat;
+            set
+            {
+                stringFormat = value;
+                PropChanged();
             }
         }
 
@@ -158,21 +176,20 @@ namespace BTNET.BV.Base
                 switch (TickerStatus)
                 {
                     case Ticker.CONNECTED:
-                        return new BitmapImage(new Uri("pack://application:,,,/BV/Resources/Connection/connection-status-connected.png"));
+                        return App.ImageOne;
 
                     case Ticker.CONNECTING:
-                        return new BitmapImage(new Uri("pack://application:,,,/BV/Resources/Connection/connection-status-connecting.png"));
+                        return App.ImageTwo;
 
                     default:
-                        return new BitmapImage(new Uri("pack://application:,,,/BV/Resources/Connection/connection-status-disconnected.png"));
+                        return App.ImageThree;
                 }
             }
         }
 
-        public void SubscribeWatchListItemSocket()
+        public async void SubscribeWatchListItemSocket()
         {
-            var ticker = Tickers.AddTicker(WatchlistSymbol!, Enum.Owner.Watchlist, false);
-
+            var ticker = await Tickers.AddTicker(WatchlistSymbol!, Enum.Owner.Watchlist, false).ConfigureAwait(false);
             if (ticker != null)
             {
                 ticker.TickerUpdated += TickerUpdated;
@@ -187,8 +204,8 @@ namespace BTNET.BV.Base
 
         public void TickerUpdated(object sender, TickerResultEventArgs e)
         {
-            WatchlistAskPrice = e.BestAsk;
-            WatchlistBidPrice = e.BestBid;
+            WatchlistAskPrice = e.BestAsk.ToString(WatchlistStringFormat);
+            WatchlistBidPrice = e.BestBid.ToString(WatchlistStringFormat);
         }
 
         public void TickerStatusChanged(object sender, StatusChangedEventArgs e)

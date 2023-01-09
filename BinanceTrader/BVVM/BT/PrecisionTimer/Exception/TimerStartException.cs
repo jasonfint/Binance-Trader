@@ -22,30 +22,24 @@
 *SOFTWARE.
 */
 
-using BinanceAPI.Interfaces;
 using System;
-using System.Collections.Generic;
 
-namespace BinanceAPI.OrderBook
+namespace PrecisionTiming
 {
-    internal class ProcessQueueItem
+    /// <summary>
+    /// Occurs when the <see cref="PrecisionTimer"/> fails to Start
+    /// </summary>
+    [Serializable]
+    public class TimerStartException : Exception
     {
-        public long StartUpdateId { get; set; }
-        public long EndUpdateId { get; set; }
-        public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
-        public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
-    }
-
-    internal class InitialOrderBookItem
-    {
-        public long StartUpdateId { get; set; }
-        public long EndUpdateId { get; set; }
-        public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
-        public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
-    }
-
-    internal class ChecksumItem
-    {
-        public int Checksum { get; set; }
+        /// <summary>
+        /// Occurs when the <see cref="PrecisionTimer"/> fails to Start
+        /// </summary>
+        /// <param name="message">User friendly error message</param>
+        public TimerStartException(string message)
+            : base(message)
+        {
+            Console.WriteLine(message);
+        }
     }
 }

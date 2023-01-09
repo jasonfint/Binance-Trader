@@ -26,7 +26,9 @@ using BTNET.BV.Enum;
 using BTNET.BVVM;
 using BTNET.BVVM.Helpers;
 using BTNET.VM.Views;
-using System.Collections.ObjectModel;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -35,6 +37,12 @@ namespace BTNET.VM.ViewModels
 {
     public class MainViewModel : Core
     {
+        private const string UPDATE = "Update:";
+        private const string PROP_CHANGED_ISLOADING = "IsCurrentlyLoading";
+        private const string LOADING_TEXT = "Loading..";
+        private const string CONNECTING_TEXT = "Connecting..";
+        private const string UP_TO_DATE = "You are using the most recent version";
+
         private const int DELAY = 200;
 
         private const int MAIN_MAX_OPACITY = 100;
@@ -59,12 +67,14 @@ namespace BTNET.VM.ViewModels
         private bool alertsReady = true;
 
         private readonly MainContext M;
-        private ObservableCollection<BinanceSymbolViewModel>? allPrices;
+        private List<BinanceSymbolViewModel>? allPrices;
         private bool savingsEnabled;
         private bool buyButtonEnabled;
         private bool sellButtonEnabled;
         private bool notepadReady = false;
-        private double opacity = 0.65;
+
+        public static string Product { get; } = ((AssemblyProductAttribute)Attribute.GetCustomAttribute(typeof(App).Assembly, typeof(AssemblyProductAttribute), false)).Product;
+        public static string Version { get; } = ((AssemblyFileVersionAttribute)Attribute.GetCustomAttribute(typeof(App).Assembly, typeof(AssemblyFileVersionAttribute), false)).Version;
 
         public MainViewModel(MainContext m) => M = m;
 
@@ -72,8 +82,6 @@ namespace BTNET.VM.ViewModels
 
         public void InitializeCommands()
         {
-            LostFocusCommand = new DelegateCommand(LostFocus);
-            GotFocusCommand = new DelegateCommand(GotFocus);
             CopySelectedItemToClipboardCommand = new DelegateCommand(CopySelectedItemToClipboard);
             ExitMainWindowCommand = new DelegateCommand(OnExitMainWindow);
 
@@ -84,10 +92,11 @@ namespace BTNET.VM.ViewModels
             ToggleNotepadViewCommand = new DelegateCommand(ToggleNotepadView);
             ToggleAlertsCommand = new DelegateCommand(ToggleAlertsView);
             ToggleLogCommand = new DelegateCommand(ToggleLogView);
+            ToggleDangerCommand = new DelegateCommand(ToggleDangerView);
             HideMenuCommand = new DelegateCommand(HideSymbolMenu);
-            ToggleScraperViewCommand = new DelegateCommand(ToggleScraper);
         }
 
+        public ICommand? ToggleDangerCommand { get; set; }
         public ICommand? ToggleFlexibleCommand { get; set; }
         public ICommand? ToggleLogCommand { get; set; }
         public ICommand? ToggleSettingsCommand { get; set; }
@@ -96,14 +105,10 @@ namespace BTNET.VM.ViewModels
         public ICommand? ToggleStratViewCommand { get; set; }
         public ICommand? ToggleAboutViewCommand { get; set; }
         public ICommand? ToggleNotepadViewCommand { get; set; }
-        public ICommand? ToggleScraperViewCommand { get; set; }
-
         public ICommand? HideMenuCommand { get; set; }
 
         public ICommand? SaveSettingsCommand { get; set; }
 
-        public ICommand? LostFocusCommand { get; set; }
-        public ICommand? GotFocusCommand { get; set; }
         public ICommand? CopySelectedItemToClipboardCommand { get; set; }
         public ICommand? ExitMainWindowCommand { get; set; }
 
@@ -117,23 +122,23 @@ namespace BTNET.VM.ViewModels
             {
                 if (isCurrentlyLoading && IsWatchlistStillLoading)
                 {
-                    return "Loading..";
+                    return LOADING_TEXT;
                 }
 
                 if (IsWatchlistStillLoading)
                 {
-                    return "Connecting..";
+                    return CONNECTING_TEXT;
                 }
 
                 if (SettingsVM.CheckForUpdatesIsChecked == true)
                 {
-                    if (SettingsVM.IsUpToDate != "You are using the most recent version")
+                    if (SettingsVM.IsUpToDate != UP_TO_DATE)
                     {
                         return SettingsVM.IsUpToDate;
                     }
                 }
 
-                return "Loading..";
+                return LOADING_TEXT;
             }
 
             set
@@ -154,7 +159,7 @@ namespace BTNET.VM.ViewModels
 
         public bool IsCurrentlyLoading
         {
-            get => isCurrentlyLoading || IsWatchlistStillLoading || SettingsVM.IsUpToDate.Contains("Update:");
+            get => isCurrentlyLoading || IsWatchlistStillLoading || SettingsVM.IsUpToDate.Contains(UPDATE);
             set
             {
                 isCurrentlyLoading = value;
@@ -171,7 +176,7 @@ namespace BTNET.VM.ViewModels
                 isWatchlistStillLoading = value;
                 PropChanged();
                 LoadingText = "";
-                PropChanged("IsCurrentlyLoading");
+                PropChanged(PROP_CHANGED_ISLOADING);
             }
         }
 
@@ -217,16 +222,6 @@ namespace BTNET.VM.ViewModels
         }
 
         #endregion [ Loading ]
-
-        public double Opacity
-        {
-            get => opacity;
-            set
-            {
-                opacity = value;
-                PropChanged();
-            }
-        }
 
         public bool BuyButtonEnabled
         {
@@ -298,7 +293,7 @@ namespace BTNET.VM.ViewModels
             }
         }
 
-        public ObservableCollection<BinanceSymbolViewModel>? AllSymbolsOnUI
+        public List<BinanceSymbolViewModel>? AllSymbolsOnUI
         {
             get => allPrices;
             set
@@ -336,7 +331,6 @@ namespace BTNET.VM.ViewModels
             if (IsListValidTarget())
             {
                 var s = SelectedListItem;
-
                 string copy =
                     "SIDE: " + s.Side +
                     " | PRICE: " + s.Price +
@@ -355,110 +349,102 @@ namespace BTNET.VM.ViewModels
             }
         }
 
-        private void GotFocus(object o)
-        {
-            Static.IsListFocus = true;
-        }
-
-        private void LostFocus(object o)
-        {
-            Static.IsListFocus = false;
-        }
-
         public bool IsListValidTarget()
         {
-            return SelectedListItem != null && Static.IsListFocus;
+            return SelectedListItem != null && SelectedListItem != default;
+        }
+
+        private void ToggleDangerView(object o)
+        {
+            _ = Task.Run(() =>
+            {
+                ToggleDangerView();
+            }).ConfigureAwait(false);
+        }
+
+        public void ToggleDangerView()
+        {
+            if (DangerView == null)
+            {
+                InvokeUI.CheckAccess(() =>
+                {
+                    DangerView = new DangerView(M);
+                    DangerView.Show();
+                });
+            }
+            else
+            {
+                InvokeUI.CheckAccess(() =>
+                {
+                    DangerView?.Close();
+                });
+
+                DangerView = null;
+            }
         }
 
         private void ToggleAlertsView(object o)
         {
-            ToggleAlertsView();
+            _ = Task.Run(() =>
+            {
+                ToggleAlertsView();
+            }).ConfigureAwait(false);
         }
 
         public void ToggleAlertsView()
         {
             if (AlertsView == null)
             {
-                AlertsView = new AlertsView(M);
-                AlertsView.Show();
-            }
-            else
-            {
-                if (!AlertsView.IsLoaded)
+                InvokeUI.CheckAccess(() =>
                 {
                     AlertsView = new AlertsView(M);
                     AlertsView.Show();
-                    return;
-                }
-
-                AlertVM.ToggleAlertSideMenu = 0;
-                AlertsView?.Close();
-                AlertsView = null;
-            }
-        }
-
-        public void ToggleScraper(object o)
-        {
-            ToggleScraperView();
-        }
-
-        public void ToggleScraperView()
-        {
-            if (ScraperView == null)
-            {
-                ScraperView = new ScraperView(M);
-                ScraperVM.StepSize = QuoteVM.PriceTickSize;
-                ScraperView.Show();
+                });
             }
             else
             {
-                if (!ScraperView.IsLoaded)
-                {
-                    ScraperView = new ScraperView(M);
-                    ScraperVM.StepSize = QuoteVM.PriceTickSize;
-                    ScraperView.Show();
-                    return;
-                }
+                AlertVM.ToggleAlertSideMenu = 0;
 
-                if (ScraperVM.Started)
+                InvokeUI.CheckAccess(() =>
                 {
-                    ScraperVM.Stop("Scraper was stopped and closed");
-                }
+                    AlertsView?.Close();
+                });
 
-                ScraperView?.Close();
-                ScraperView = null;
+                AlertsView = null;
             }
         }
 
         private void ToggleFlexibleView(object o)
         {
-            ToggleFlexibleView();
+            _ = Task.Run(() =>
+            {
+                ToggleFlexibleView();
+            }).ConfigureAwait(false);
         }
 
         public void ToggleFlexibleView()
         {
             if (FlexibleView == null)
             {
-                FlexibleView = new FlexibleView(M);
+                InvokeUI.CheckAccess(() =>
+                {
+                    FlexibleView = new FlexibleView(M);
+                    FlexibleView.Show();
+                });
 
                 _ = Task.Run(async () =>
                 {
                     await FlexibleVM.GetAllProductsAsync().ConfigureAwait(false);
                     await FlexibleVM.GetAllPositionsAsync(false).ConfigureAwait(false);
                 });
-
-                FlexibleView.Show();
             }
             else
             {
-                if (!FlexibleView.IsLoaded)
+                InvokeUI.CheckAccess(() =>
                 {
-                    FlexibleView = new FlexibleView(M);
-                    FlexibleView.Show();
-                    return;
-                }
+                    FlexibleView?.Close();
+                });
 
-                FlexibleView?.Close();
                 FlexibleView = null;
             }
 
@@ -467,52 +453,60 @@ namespace BTNET.VM.ViewModels
 
         private void ToggleWatchlistView(object o)
         {
-            ToggleWatchlistView();
+            _ = Task.Run(() =>
+            {
+                ToggleWatchlistView();
+            }).ConfigureAwait(false);
         }
 
         public void ToggleWatchlistView()
         {
             if (WatchlistView == null)
             {
-                WatchlistView = new WatchlistView(M);
-                WatchlistView.Show();
-            }
-            else
-            {
-                if (!WatchlistView.IsLoaded)
+                InvokeUI.CheckAccess(() =>
                 {
                     WatchlistView = new WatchlistView(M);
                     WatchlistView.Show();
-                    return;
-                }
+                });
+            }
+            else
+            {
+                VisibilityVM.WatchListHeight = WatchlistView.ActualHeight;
 
-                WatchlistView?.Close();
+                InvokeUI.CheckAccess(() =>
+                {
+                    WatchlistView?.Close();
+                });
+
                 WatchlistView = null;
             }
         }
 
         private void ToggleNotepadView(object o)
         {
-            ToggleNotepadView();
+            _ = Task.Run(() =>
+            {
+                ToggleNotepadView();
+            }).ConfigureAwait(false);
         }
 
         public void ToggleNotepadView()
         {
             if (NotepadView == null)
             {
-                NotepadView = new NotepadView(M);
-                NotepadView.Show();
-            }
-            else
-            {
-                if (!NotepadView.IsLoaded)
+                InvokeUI.CheckAccess(() =>
                 {
                     NotepadView = new NotepadView(M);
                     NotepadView.Show();
-                    return;
-                }
+                });
+            }
+            else
+            {
+                InvokeUI.CheckAccess(() =>
+                {
+                    NotepadView?.Close();
+                });
 
-                NotepadView?.Close();
                 NotepadView = null;
                 NotepadVM.SaveNotes();
             }
@@ -520,107 +514,97 @@ namespace BTNET.VM.ViewModels
 
         private void ToggleLogView(object o)
         {
-            ToggleLogView();
+            _ = Task.Run(() =>
+            {
+                ToggleLogView();
+            }).ConfigureAwait(false);
         }
 
         public void ToggleLogView()
         {
             if (LogView == null)
             {
-                LogView = new LogView(M);
-                LogView.Show();
-            }
-            else
-            {
-                if (!LogView.IsLoaded)
+                InvokeUI.CheckAccess(() =>
                 {
                     LogView = new LogView(M);
                     LogView.Show();
-                    return;
-                }
+                });
+            }
+            else
+            {
+                InvokeUI.CheckAccess(() =>
+                {
+                    LogView?.Close();
+                });
 
-                LogView?.Close();
                 LogView = null;
             }
         }
 
         private void ToggleSettingsView(object o)
         {
-            ToggleSettingsView();
+            _ = Task.Run(() =>
+            {
+                ToggleSettingsView();
+            }).ConfigureAwait(false);
         }
 
         public void ToggleSettingsView()
         {
             if (SettingsView == null)
             {
-                SettingsView = new SettingsView(M);
-                SettingsView.Show();
-            }
-            else
-            {
-                if (!SettingsView.IsLoaded)
+                InvokeUI.CheckAccess(() =>
                 {
                     SettingsView = new SettingsView(M);
                     SettingsView.Show();
-                    return;
-                }
+                });
+            }
+            else
+            {
+                InvokeUI.CheckAccess(() =>
+                {
+                    SettingsView?.Close();
+                });
 
-                SettingsView?.Close();
                 SettingsView = null;
             }
         }
 
         private void ToggleAboutView(object o)
         {
+            _ = Task.Run(() =>
+            {
+                ToggleAboutView();
+            }).ConfigureAwait(false);
+        }
+
+        private void ToggleAboutView()
+        {
             if (AboutView == null)
             {
-                AboutView = new AboutView(M);
-                AboutView.Show();
-            }
-            else
-            {
-                if (!AboutView.IsLoaded)
+                InvokeUI.CheckAccess(() =>
                 {
                     AboutView = new AboutView(M);
                     AboutView.Show();
-                    return;
-                }
+                });
+            }
+            else
+            {
+                InvokeUI.CheckAccess(() =>
+                {
+                    AboutView?.Close();
+                });
 
-                AboutView?.Close();
                 AboutView = null;
             }
         }
-
 
         public void HideSymbolMenu(object o)
         {
             HideSideMenu = HideSideMenu == CANVAS_OVERFLOW ? 0 : CANVAS_OVERFLOW;
         }
 
-        public Task ResetListViewMaxHeightAsync()
-        {
-            InvokeUI.CheckAccess(() =>
-            {
-                var d = App.Current.MainWindow.ActualHeight - App.ORDER_LIST_MAX_HEIGHT_OFFSET_NORMAL;
-                switch (d)
-                {
-                    case >= 0:
-                        VisibilityVM.OrderListHeightMax = d;
-                        break;
-
-                    default:
-                        d = App.Current.MainWindow.ActualHeight;
-                        if (d > 0)
-                        {
-                            VisibilityVM.OrderListHeightMax = d;
-                        }
-                        break;
-                }
-            });
-
-            return Task.CompletedTask;
-        }
-
+        public DangerView? DangerView { get; set; }
         public AlertsView? AlertsView { get; set; }
         public WatchlistView? WatchlistView { get; set; }
         public SettingsView? SettingsView { get; set; }
@@ -628,7 +612,6 @@ namespace BTNET.VM.ViewModels
         public AboutView? AboutView { get; set; }
         public FlexibleView? FlexibleView { get; set; }
         public LogView? LogView { get; set; }
-        public ScraperView? ScraperView { get; set; }
 
         #endregion [Controls]
     }

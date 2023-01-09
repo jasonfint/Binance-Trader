@@ -52,10 +52,11 @@ namespace BTNET.VM.ViewModels
             ShowBreakDownInfoCommand = new DelegateCommand(ShowBreakDownInfo);
             TransparentTitleBarCommand = new DelegateCommand(TransparentTitleBar);
             CheckForUpdatesCommand = new DelegateCommand(CheckForUpdate);
-            RealTimeModeCommand = new DelegateCommand(RealTimeMode);
             DisableOpacityCommand = new DelegateCommand(DisableOpacity);
             AutoSaveSettingsCommand = new DelegateCommand(AutoSave);
             KeepFirstOrderCommand = new DelegateCommand(KeepFirstOrder);
+            DangerousButtonsEnabledCommand = new DelegateCommand(DangerousButtons);
+            ShowScraperButtonCommand = new DelegateCommand(ScraperButton);
         }
 
         public ICommand? TransparentTitleBarCommand { get; set; }
@@ -66,6 +67,8 @@ namespace BTNET.VM.ViewModels
         public ICommand? ShowBorrowInfoCommand { get; set; }
         public ICommand? ShowMarginInfoCommand { get; set; }
 
+        public ICommand? ShowScraperButtonCommand { get; set; }
+
         public ICommand? ShowBreakDownInfoCommand { get; set; }
 
         public ICommand? SaveSettingsCommand { get; set; }
@@ -73,11 +76,11 @@ namespace BTNET.VM.ViewModels
 
         public ICommand? CheckForUpdatesCommand { get; set; }
 
-        public ICommand? RealTimeModeCommand { get; set; }
-
         public ICommand? AutoSaveSettingsCommand { get; set; }
 
         public ICommand? KeepFirstOrderCommand { get; set; }
+
+        public ICommand? DangerousButtonsEnabledCommand { get; set; }
 
         #endregion [Commands]
 
@@ -92,8 +95,8 @@ namespace BTNET.VM.ViewModels
         private bool? showBreakDownInfoIsChecked = true;
         private bool? transparentTitleBarIsChecked = false;
         private bool? checkForUpdatesIsChecked = false;
-        private bool? realTimeModeIsChecked = false;
         private bool? disableOpacityIsChecked = false;
+        private bool? dangerousButtonsIsChecked = false;
         private double? orderOpacity = 0.7;
         private bool checkForUpdateCheckBoxEnabled;
         private string isUpToDate = "";
@@ -102,6 +105,7 @@ namespace BTNET.VM.ViewModels
         private Brush titleBarBrush = Static.Gray;
         private bool? autoSaveIsChecked;
         private bool? keepFirstOrderIsChecked;
+        private bool? showScraperButtonIsChecked;
 
         public string IsUpToDate
         {
@@ -203,14 +207,32 @@ namespace BTNET.VM.ViewModels
 
                 if (DisableOpacityIsChecked == true)
                 {
-                    SettingsVM.OrderOpacity = 1.0;
-                    MainVM.Opacity = 1.0;
+                    SettingsVM.Opacity = 1.0;
                 }
                 else
                 {
-                    MainVM.Opacity = 0.65;
-                    SettingsVM.OrderOpacity = 0.65;
+                    SettingsVM.Opacity = 0.89;
                 }
+            }
+        }
+
+        public bool? ShowScraperButtonIsChecked
+        {
+            get => showScraperButtonIsChecked;
+            set
+            {
+                showScraperButtonIsChecked = value;
+                PropChanged();
+            }
+        }
+
+        public bool? DangerousButtonsIsChecked
+        {
+            get => dangerousButtonsIsChecked;
+            set
+            {
+                dangerousButtonsIsChecked = value;
+                PropChanged();
             }
         }
 
@@ -294,17 +316,7 @@ namespace BTNET.VM.ViewModels
             }
         }
 
-        public bool? RealTimeModeIsChecked
-        {
-            get => realTimeModeIsChecked;
-            set
-            {
-                realTimeModeIsChecked = value;
-                PropChanged();
-            }
-        }
-
-        public double? OrderOpacity
+        public double? Opacity
         {
             get => orderOpacity;
             set
@@ -324,86 +336,69 @@ namespace BTNET.VM.ViewModels
             }
         }
 
+        public void ScraperButton(object o)
+        {
+            ShowScraperButtonIsChecked = !ShowScraperButtonIsChecked;
+        }
+
+        public void DangerousButtons(object o)
+        {
+            DangerousButtonsIsChecked = !DangerousButtonsIsChecked;
+        }
+
         public void KeepFirstOrder(object o)
         {
             KeepFirstOrderIsChecked = !KeepFirstOrderIsChecked;
-            PropChanged("KeepFirstOrderIsChecked");
         }
 
         public void AutoSave(object o)
         {
             AutoSaveIsChecked = !AutoSaveIsChecked;
-            PropChanged("AutoSaveIsChecked");
         }
 
         public void DisableOpacity(object o)
         {
             DisableOpacityIsChecked = !DisableOpacityIsChecked;
-            PropChanged("DisableOpacityIsChecked");
         }
 
         public void TransparentTitleBar(object o)
         {
             TransparentTitleBarIsChecked = !TransparentTitleBarIsChecked;
-            PropChanged("TransparentTitleBarIsChecked");
             ConfigureTitleBar();
-        }
-
-        private void RealTimeMode(object o)
-        {
-            RealTimeModeIsChecked = !RealTimeModeIsChecked;
-            PropChanged("RealTimeModeIsChecked");
-
-            if (RealTimeModeIsChecked == true)
-            {
-                _ = General.ProcessAffinityAsync(false).ConfigureAwait(false);
-                _ = General.ProcessPriorityAsync(false).ConfigureAwait(false);
-            }
-            else
-            {
-                _ = General.ProcessAffinityAsync(true).ConfigureAwait(false);
-                _ = General.ProcessPriorityAsync(true).ConfigureAwait(false);
-            }
         }
 
         private void CheckForUpdate(object o)
         {
             CheckForUpdatesIsChecked = !CheckForUpdatesIsChecked;
-            PropChanged("CheckForUpdatesIsChecked");
         }
 
         private void ShowBreakDownInfo(object o)
         {
             ShowBreakDownInfoIsChecked = !ShowBreakDownInfoIsChecked;
             BorrowVM.ShowBreakdown = ShowBreakDownInfoIsChecked ?? false;
-            PropChanged("ShowBreakDownIsChecked");
         }
 
         private void ShowIsolatedInfo(object o)
         {
             ShowIsolatedInfoIsChecked = !ShowIsolatedInfoIsChecked;
             BorrowVM.IsolatedInfoVisible = showMarginInfoIsChecked ?? false;
-            PropChanged("ShowIsolatedInfoIsChecked");
         }
 
         private void ShowMarginInfo(object o)
         {
             ShowMarginInfoIsChecked = !ShowMarginInfoIsChecked;
             BorrowVM.MarginInfoVisible = ShowMarginInfoIsChecked ?? false;
-            PropChanged("ShowMarginInfoIsChecked");
         }
 
         private void ShowBorrowInfo(object o)
         {
             ShowBorrowInfoIsChecked = !ShowBorrowInfoIsChecked;
             BorrowVM.BorrowInfoVisible = ShowBorrowInfoIsChecked ?? false;
-            PropChanged("ShowBorrowInfoIsChecked");
         }
 
         private void ShowSymbolInfo(object o)
         {
             ShowSymbolInfoIsChecked = !ShowSymbolInfoIsChecked;
-            PropChanged("ShowSymbolInfoIsChecked");
         }
 
         private void ChangeSettings(object o)
@@ -469,18 +464,19 @@ namespace BTNET.VM.ViewModels
                 ShowBreakDownInfoIsChecked ?? null,
                 ShowMarginInfoIsChecked ?? null,
                 ShowIsolatedInfoIsChecked ?? null,
-                OrderOpacity ?? null,
                 TransparentTitleBarIsChecked ?? null,
                 CheckForUpdatesIsChecked ?? null,
                 TradeVM.UseLimitSellBool,
                 BorrowVM.BorrowSell,
                 BorrowVM.BorrowBuy,
                 TradeVM.UseLimitBuyBool,
-                RealTimeModeIsChecked ?? null,
                 null, // todo: add notification setting
                 DisableOpacityIsChecked ?? null,
                 AutoSaveIsChecked ?? null,
-                KeepFirstOrderIsChecked ?? null);
+                KeepFirstOrderIsChecked ?? null,
+                DangerousButtonsIsChecked ?? null,
+                VisibilityVM.WatchListHeight,
+                ShowScraperButtonIsChecked ?? null);
 
             if (settings != null)
             {
@@ -493,11 +489,29 @@ namespace BTNET.VM.ViewModels
                 VisibilityVM.PanelRealTimeLeft, VisibilityVM.PanelRealTimeTop,
                 VisibilityVM.PanelBorrowBoxLeft, VisibilityVM.PanelBorrowBoxTop,
                 VisibilityVM.PanelMarginInfoLeft, VisibilityVM.PanelMarginInfoTop,
-                VisibilityVM.OrderListHeight);
+                VisibilityVM.OrderListHeight,
+                VisibilityVM.TradeInfoLeft, VisibilityVM.TradeInfoTop,
+                VisibilityVM.ScraperLeft, VisibilityVM.ScraperTop,
+                VisibilityVM.InsightsPanelLeft, VisibilityVM.InsightsPanelTop);
 
             if (settingsPanels != null)
             {
                 Json.Save(settingsPanels, App.SettingsPanels);
+            }
+
+            SettingsObjectScraper settingsScraper = new(
+                ScraperVM.SellPercent,
+                ScraperVM.ReverseDownPercent,
+                ScraperVM.PriceBias,
+                ScraperVM.WaitTimeCount,
+                ScraperVM.WaitTime,
+                ScraperVM.ScraperCounter.GuesserResetShortCountUp, ScraperVM.ScraperCounter.GuesserResetShortCountDown, ScraperVM.ScraperCounter.GuesserDivPercent,
+                ScraperVM.ScraperCounter.GuesserResetLongCountUp, ScraperVM.ScraperCounter.GuesserResetLongCountDown, ScraperVM.ScraperCounter.GuesserResetTime,
+                ScraperVM.ScraperCounter.GuesserResetTimeBias, ScraperVM.ScraperCounter.GuesserUpBias, ScraperVM.ScraperCounter.GuesserDownBias, ScraperVM.ScraperCounter.GuesserDeadTime);
+
+            if (settingsScraper != null)
+            {
+                Json.Save(settingsScraper, App.SettingsScraper);
             }
         }
 

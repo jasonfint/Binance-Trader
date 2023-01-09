@@ -49,16 +49,17 @@ namespace BTNET.BV.Base
                 if (alerts != null)
                 {
                     WriteLog.Info("Loaded [" + alerts.Count() + "] Alerts from file");
+
+                    foreach (var alert in alerts)
+                    {
+                        AlertVM.Alerts.Add(new AlertItem(alert.AlertPrice, alert.AlertSymbol, alert.AlertHasSound, alert.AlertRepeats,
+                            alert.RepeatInterval, alert.ReverseBeforeRepeat, alert.AlertTriggered, alert.LastTriggered, alert.AlertDirection));
+
+                        Tickers.AddTicker(alert.AlertSymbol, Owner.AlertsPanel).ConfigureAwait(false);
+                    }
+
                     InvokeUI.CheckAccess(() =>
                     {
-                        foreach (var alert in alerts)
-                        {
-                            AlertVM.Alerts.Add(new AlertItem(alert.AlertPrice, alert.AlertSymbol, alert.AlertHasSound, alert.AlertRepeats,
-                                alert.RepeatInterval, alert.ReverseBeforeRepeat, alert.AlertTriggered, alert.LastTriggered, alert.AlertDirection));
-
-                            Tickers.AddTicker(alert.AlertSymbol, Owner.AlertsPanel);
-                        }
-
                         AlertVM.Alerts = new ObservableCollection<AlertItem>(AlertVM.Alerts.OrderByDescending(d => d.AlertSymbol));
                     });
                 }

@@ -22,35 +22,30 @@
 *SOFTWARE.
 */
 
-using BinanceAPI.Interfaces;
-using System;
-using System.Collections.Generic;
+using BinanceAPI.Enums;
+using BTNET.BV.Enum;
 
-namespace BinanceAPI.OrderBook
+namespace BTNET.BV.Base
 {
-    /// <summary>
-    /// Buffer entry with a first and last update id
-    /// </summary>
-    public class ProcessBufferRangeSequenceEntry
+    public class RunnerOrderBase
     {
-        /// <summary>
-        /// First update id
-        /// </summary>
-        public long FirstUpdateId { get; set; }
+        public string Symbol;
+        public decimal Quantity;
+        public decimal Price;
+        public TradingMode TradingMode;
+        public bool Borrow;
+        public OrderSide Side;
+        public bool UseLimit;
 
-        /// <summary>
-        /// Last update id
-        /// </summary>
-        public long LastUpdateId { get; set; }
-
-        /// <summary>
-        /// List of asks
-        /// </summary>
-        public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
-
-        /// <summary>
-        /// List of bids
-        /// </summary>
-        public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
+        public RunnerOrderBase(string symbol, decimal quantity, decimal price, TradingMode tradingMode, bool borrow, OrderSide side, bool useLimit)
+        {
+            Symbol = symbol;
+            Quantity = quantity;
+            Price = price;
+            TradingMode = tradingMode;
+            Borrow = borrow;
+            Side = side;
+            UseLimit = useLimit;
+        }
     }
 }

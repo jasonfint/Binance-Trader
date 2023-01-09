@@ -30,9 +30,10 @@
     Width="240"
     Height="345"
     MinWidth="240"
-    MinHeight="320"
+    MinHeight="345"
     Icon="/BV/Resources/settingsnew.png"
     ResizeMode="NoResize"
+    ShowInTaskbar="False"
     WindowStyle="None">
 
     <WindowChrome.WindowChrome>
@@ -167,18 +168,6 @@
                         FontWeight="Bold"
                         Foreground="AntiqueWhite"
                         Text="Orders" />
-                    <StackPanel Margin="4,0,0,0" Orientation="Horizontal">
-                        <Slider
-                            Grid.Column="6"
-                            Width="50"
-                            Height="14"
-                            VerticalAlignment="Center"
-                            Maximum="1"
-                            Minimum="0.3"
-                            ToolTip="Set the Opacity of Displayed Orders"
-                            Value="{Binding SettingsVM.OrderOpacity}" />
-                        <TextBlock Foreground="AntiqueWhite">Display Opacity</TextBlock>
-                    </StackPanel>
                     <CheckBox
                         Margin="4,0,0,0"
                         Command="{Binding SettingsVM.TransparentTitleBarCommand}"
@@ -242,18 +231,18 @@
                         Foreground="AntiqueWhite"
                         IsChecked="{Binding SettingsVM.ShowIsolatedInfoIsChecked, Mode=OneWay}"
                         IsEnabled="{Binding MainVM.IsIsolated}" />
+                    <CheckBox
+                        Margin="4,0,0,0"
+                        Command="{Binding SettingsVM.ShowScraperButtonCommand}"
+                        Content="Show Scraper"
+                        ToolTip="Show the Scraper on the Main Overlay"
+                        Foreground="AntiqueWhite"
+                        IsChecked="{Binding SettingsVM.ShowScraperButtonIsChecked, Mode=OneWay}"/>
                     <TextBlock
                         Margin="5,1,0,1"
                         FontWeight="Bold"
                         Foreground="AntiqueWhite"
                         Text="General" />
-                    <CheckBox
-                        Margin="4,0,0,0"
-                        Command="{Binding SettingsVM.RealTimeModeCommand}"
-                        Content="Run Client in Real Time Mode"
-                        ToolTip="Change Process Affinity/Priority so that BinanceTrader has priority usage of the CPU &#x0a;May Cause lag on slower machines and during start-up"
-                        Foreground="AntiqueWhite"
-                        IsChecked="{Binding SettingsVM.RealTimeModeIsChecked, Mode=OneWay}" />
                     <CheckBox
                         Margin="4,0,0,0"
                         Command="{Binding SettingsVM.CheckForUpdatesCommand}"
@@ -269,6 +258,13 @@
                         ToolTip="Automatically save settings and quotes every 15 minutes"
                         Foreground="AntiqueWhite"
                         IsChecked="{Binding SettingsVM.AutoSaveIsChecked, Mode=OneWay}" />
+                    <CheckBox
+                        Margin="4,0,0,0"
+                        Command="{Binding SettingsVM.DangerousButtonsEnabledCommand}"
+                        Content="Enable Dangerous Buttons"
+                        ToolTip="Ticking this will enable the Sell All (S) and Sell All and Clear Buttons (C) &#x0a;These buttons appear on the Borrow Information panel"
+                        Foreground="AntiqueWhite"
+                        IsChecked="{Binding SettingsVM.DangerousButtonsIsChecked, Mode=OneWay}" />
                 </StackPanel>
             </Grid>
         </StackPanel>

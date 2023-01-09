@@ -34,6 +34,10 @@ namespace BTNET.VM.ViewModels
     public class BorrowViewModel : Core
     {
         private const string NOT_FOUND = "Not Found";
+        private const string FREE = " Free";
+        private const string UNEXPECTED_EXCEPTION = "Selected Tab Error: Unexpected Exception";
+        private const string PROP_CHANGED_BORROWBUY = "BorrowBuy";
+        private const string PROP_CHANGED_BORROWSELL = "BorrowSell";
 
         public ICommand? SettleBaseCommand { get; set; }
         public ICommand? SettleAllCommand { get; set; }
@@ -152,7 +156,7 @@ namespace BTNET.VM.ViewModels
             set
             {
                 string s = value;
-                this.s2 = s + " Free";
+                this.s2 = s + FREE;
                 PropChanged();
             }
         }
@@ -225,7 +229,7 @@ namespace BTNET.VM.ViewModels
             set
             {
                 string s = value;
-                this.s1 = s + " Free";
+                this.s1 = s + FREE;
                 PropChanged();
             }
         }
@@ -425,7 +429,10 @@ namespace BTNET.VM.ViewModels
         public string BorrowInformationHeader
         {
             get => Static.CurrentTradingMode == TradingMode.Spot ? "Asset Info" : "Borrow Info";
-            set { PropChanged(); }
+            set
+            {
+                PropChanged();
+            }
         }
 
         public bool BorrowSell
@@ -532,7 +539,7 @@ namespace BTNET.VM.ViewModels
                     break;
 
                 default:
-                    WriteLog.Error("Selected Tab Error: Unexpected Exception");
+                    WriteLog.Error(UNEXPECTED_EXCEPTION);
                     break;
             }
         }
@@ -546,12 +553,10 @@ namespace BTNET.VM.ViewModels
 
                 case SelectedTab.Buy:
                     BorrowBuy = !BorrowBuy;
-                    PropChanged("BorrowBuy");
                     break;
 
                 case SelectedTab.Sell:
                     BorrowSell = !BorrowSell;
-                    PropChanged("BorrowSell");
                     break;
             }
         }

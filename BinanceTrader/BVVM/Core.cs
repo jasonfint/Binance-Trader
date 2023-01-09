@@ -22,13 +22,10 @@
 *SOFTWARE.
 */
 
-using BTNET.BV.Abstract;
 using BTNET.BV.Base;
+using BTNET.BVVM.BT.Market;
 using BTNET.VM.ViewModels;
-using Newtonsoft.Json;
-using System;
 using System.ComponentModel;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace BTNET.BVVM
@@ -38,8 +35,6 @@ namespace BTNET.BVVM
     /// </summary>
     public class Core : INotifyPropertyChanged
     {
-        #region [PropertyChangedEvent]
-
         public event PropertyChangedEventHandler? PropertyChanged;
 
         protected void PropChanged([CallerMemberName] string callerName = "")
@@ -47,47 +42,34 @@ namespace BTNET.BVVM
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(callerName));
         }
 
-        #endregion [PropertyChangedEvent]
-
-        private readonly ApiKeys userApiKeys = new();
-
-        [JsonIgnore]
-        public string SymbolSearchValue { get; set; } = "";
-
-        [JsonIgnore]
-        public static string Product { get; } = ((AssemblyProductAttribute)Attribute.GetCustomAttribute(typeof(App).Assembly,
-            typeof(AssemblyProductAttribute), false)).Product;
-
-        [JsonIgnore]
-        public static string Version { get; } = ((AssemblyFileVersionAttribute)Attribute.GetCustomAttribute(typeof(App).Assembly,
-            typeof(AssemblyFileVersionAttribute), false)).Version;
-
-        #region [ Static ]
-
-        public static MainViewModel MainVM { get; set; } = new(null!);
-        public static SettingsViewModel SettingsVM { get; set; } = new();
-        public static ServerTimeViewModel ServerTimeVM { get; set; } = new();
-        public static OrderBase SelectedListItem { get; set; } = new();
-        public static BorrowViewModel BorrowVM { get; set; } = new();
-        public static QuoteViewModel QuoteVM { get; set; } = new();
-        public static TradeViewModel TradeVM { get; set; } = new();
-        public static WatchlistViewModel WatchListVM { get; set; } = new();
-        public static RealTimeUpdateViewModel RealTimeVM { get; set; } = new();
-        public static SettleViewModel SettleVM { get; set; } = new();
-        public static AlertViewModel AlertVM { get; set; } = new();
-        public static NotepadViewModel NotepadVM { get; set; } = new();
-        public static VisibilityViewModel VisibilityVM { get; set; } = new();
-        public static LogViewModel LogVM { get; set; } = new();
-
-        public static ScraperViewModel ScraperVM { get; set; } = new();
-        public static NotifyViewModel NotifyVM { get; set; } = new();
-        public static FlexibleViewModel FlexibleVM { get; set; } = new();
-
-        public static MainOrders Orders { get; set; } = new();
+        public static MarketTrades Market { get; set; } = new();
 
         public static BTClient Client { get; set; } = null!;
 
+        public static OrderBase SelectedListItem { get; set; } = new();
+        public static MainOrders Orders { get; set; } = new();
 
-        #endregion [ Static ]
+        public static MainViewModel MainVM { get; set; } = new(null!);
+        public static SettingsViewModel SettingsVM { get; set; } = new();
+        public static VisibilityViewModel VisibilityVM { get; set; } = new();
+
+        public static BorrowViewModel BorrowVM { get; set; } = new();
+        public static TradeViewModel TradeVM { get; set; } = new();
+        public static SettleViewModel SettleVM { get; set; } = new();
+        public static FlexibleViewModel FlexibleVM { get; set; } = new();
+
+        public static AlertViewModel AlertVM { get; set; } = new();
+        public static WatchlistViewModel WatchListVM { get; set; } = new();
+
+        public static ServerTimeViewModel ServerTimeVM { get; set; } = new();
+        public static RealTimeUpdateViewModel RealTimeVM { get; set; } = new();
+        public static QuoteViewModel QuoteVM { get; set; } = new();
+
+        public static LogViewModel LogVM { get; set; } = new();
+        public static NotepadViewModel NotepadVM { get; set; } = new();
+        public static NotifyViewModel NotifyVM { get; set; } = new();
+
+        public static MarketViewModel MarketVM { get; set; } = new();
+        public static ScraperViewModel ScraperVM { get; set; } = new();
     }
 }

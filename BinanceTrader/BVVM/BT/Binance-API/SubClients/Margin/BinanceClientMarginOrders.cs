@@ -62,48 +62,77 @@ namespace BinanceAPI.SubClients.Margin
         /// <param name="type">The order type</param>
         /// <param name="timeInForce">Lifetime of the order (GoodTillCancel/ImmediateOrCancel/FillOrKill)</param>
         /// <param name="quantity">The amount of the symbol</param>
-        /// <param name="quoteOrderQuantity">The amount of the quote symbol. Only valid for market orders</param>
         /// <param name="price">The price to use</param>
-        /// <param name="newClientOrderId">Unique id for order</param>
         /// <param name="stopPrice">Used for stop orders</param>
-        /// <param name="icebergQuantity">Used for iceberg orders</param>
         /// <param name="sideEffectType">Side effect type for this order</param>
         /// <param name="isIsolated">For isolated margin or not</param>
         /// <param name="orderResponseType">Used for the response JSON</param>
         /// <param name="receiveWindow">The receive window for which this request is active. When the request takes longer than this to complete the server will reject the request</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>Id's for the placed order</returns>
-        public async Task<WebCallResult<BinancePlacedOrder>> PlaceMarginOrderAsync(string symbol,
+        public async Task<WebCallResult<BinancePlacedOrder>> PlaceMarginOrderLimitAsync(string symbol,
             OrderSide side,
             OrderType type,
             decimal? quantity = null,
-            decimal? quoteOrderQuantity = null,
-            string? newClientOrderId = null,
             decimal? price = null,
             TimeInForce? timeInForce = null,
             decimal? stopPrice = null,
-            decimal? icebergQuantity = null,
             SideEffectType? sideEffectType = null,
             bool? isIsolated = null,
             OrderResponseType? orderResponseType = null,
             int? receiveWindow = null,
             CancellationToken ct = default)
         {
-            return await _baseClient.PlaceOrderInternal(UriClient.GetBaseAddress() + UriClient.GetEndpoint.Order.Margin.POST_NEW_ORDER_NewOrder,
+            return await _baseClient.PlaceOrderInternalLimit(UriClient.GetBaseAddress() + UriClient.GetEndpoint.Order.Margin.POST_NEW_ORDER_NewOrder,
                 symbol,
                 side,
                 type,
                 quantity,
-                quoteOrderQuantity,
-                newClientOrderId,
                 price,
                 timeInForce,
                 stopPrice,
-                icebergQuantity,
                 sideEffectType,
                 isIsolated,
                 orderResponseType,
-                null,
+                receiveWindow,
+                ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Margin account new order
+        /// <para>[POST] https://binance-docs.github.io/apidocs/spot/en/#margin-account-new-order-trade</para>
+        /// </summary>
+        /// <param name="symbol">The symbol the order is for</param>
+        /// <param name="side">The order side (buy/sell)</param>
+        /// <param name="type">The order type</param>
+        /// <param name="quantity">The amount of the symbol</param>
+        /// <param name="stopPrice">Used for stop orders</param>
+        /// <param name="sideEffectType">Side effect type for this order</param>
+        /// <param name="isIsolated">For isolated margin or not</param>
+        /// <param name="orderResponseType">Used for the response JSON</param>
+        /// <param name="receiveWindow">The receive window for which this request is active. When the request takes longer than this to complete the server will reject the request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Id's for the placed order</returns>
+        public async Task<WebCallResult<BinancePlacedOrder>> PlaceMarginOrderMarketAsync(string symbol,
+            OrderSide side,
+            OrderType type,
+            decimal? quantity = null,
+            decimal? stopPrice = null,
+            SideEffectType? sideEffectType = null,
+            bool? isIsolated = null,
+            OrderResponseType? orderResponseType = null,
+            int? receiveWindow = null,
+            CancellationToken ct = default)
+        {
+            return await _baseClient.PlaceOrderInternalMarket(UriClient.GetBaseAddress() + UriClient.GetEndpoint.Order.Margin.POST_NEW_ORDER_NewOrder,
+                symbol,
+                side,
+                type,
+                quantity,
+                stopPrice,
+                sideEffectType,
+                isIsolated,
+                orderResponseType,
                 receiveWindow,
                 ct).ConfigureAwait(false);
         }

@@ -22,6 +22,8 @@
 *SOFTWARE.
 */
 
+using BTNET.BV.Enum;
+using BTNET.BVVM;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -36,17 +38,24 @@ namespace BTNET.VM.Controls
         private double MovingObjectX;
         private double MovingObjectY;
 
-        public static double RealTimeLeft { get; set; }
-
-        public static double BorrowBoxLeft { get; set; }
-
-        public static double MarginBoxLeft { get; set; }
-
         public static double CanvasActualWidth { get; set; }
 
         public CanvasControl()
         {
             InitializeComponent();
+
+            switch (Core.ScraperVM.DirectionBias)
+            {
+                case Bias.None:
+                    Core.ScraperVM.SelectedItem.None = true;
+                    break;
+                case Bias.Bearish:
+                    Core.ScraperVM.SelectedItem.Bearish = true;
+                    break;
+                case Bias.Bullish:
+                    Core.ScraperVM.SelectedItem.Bullish = true;
+                    break;
+            }
         }
 
         private void BreakDownBoxDown(object sender, MouseButtonEventArgs e)
@@ -58,7 +67,7 @@ namespace BTNET.VM.Controls
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                UpdateCanvas(BreakdownBox, e, out _);
+                UpdateCanvas(BreakdownBox, e);
             }
         }
 
@@ -71,7 +80,7 @@ namespace BTNET.VM.Controls
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                UpdateCanvas(InfoBox, e, out _);
+                UpdateCanvas(InfoBox, e);
             }
         }
 
@@ -84,8 +93,7 @@ namespace BTNET.VM.Controls
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                UpdateCanvas(RealTimeBox, e, out double b);
-                RealTimeLeft = b;
+                UpdateCanvas(RealTimeBox, e);
             }
         }
 
@@ -98,8 +106,7 @@ namespace BTNET.VM.Controls
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                UpdateCanvas(BorrowBox, e, out double b);
-                BorrowBoxLeft = b;
+                UpdateCanvas(BorrowBox, e);
             }
         }
 
@@ -112,8 +119,7 @@ namespace BTNET.VM.Controls
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                UpdateCanvas(MarginBox, e, out double b);
-                MarginBoxLeft = b;
+                UpdateCanvas(MarginBox, e);
             }
         }
 
@@ -122,14 +128,55 @@ namespace BTNET.VM.Controls
             CanvasActualWidth = CanvasC.ActualWidth;
         }
 
-        private void UpdateCanvas<T>(T sp, MouseEventArgs args, out double c) where T : UIElement
+        private void TradeInfoBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                UpdateCanvas(TradeInfoBox, e);
+            }
+        }
+
+        private void TradeInfoBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            SetMovingObject(e.GetPosition(TradeInfoBox));
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ScrapLog.ScrollToEnd();
+        }
+
+        private void ScraperBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                UpdateCanvas(ScraperBox, e);
+            }
+        }
+
+        private void ScraperBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            SetMovingObject(e.GetPosition(ScraperBox));
+        }
+
+        private void InsightsInfoBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                UpdateCanvas(InsightsInfoBox, e);
+            }
+        }
+
+        private void InsightsInfoBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            SetMovingObject(e.GetPosition(InsightsInfoBox));
+        }
+
+        private void UpdateCanvas<T>(T sp, MouseEventArgs args) where T : UIElement
         {
             Point p = args.GetPosition(Canvas);
             Thickness t = Canvas.Margin;
-
-            c = p.X - MovingObjectX - t.Left;
-
-            sp.SetValue(Canvas.LeftProperty, c);
+            sp.SetValue(Canvas.LeftProperty, p.X - MovingObjectX - t.Left);
             sp.SetValue(Canvas.TopProperty, p.Y - MovingObjectY - t.Top);
         }
 

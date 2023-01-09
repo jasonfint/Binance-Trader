@@ -22,16 +22,24 @@
 *SOFTWARE.
 */
 
-namespace BTNET.BV.Base
+using System;
+
+namespace PrecisionTiming
 {
-    public class RealTimeUpdateBase
+    /// <summary>
+    /// Occurs when a <see cref="PrecisionTimerEvent"/> is already running and the user attempts to configure something that requires stopping it first
+    /// </summary>
+    [Serializable]
+    public class LongRunningTimerException : Exception
     {
-        public decimal BestAskPrice { get; set; }
-
-        public decimal BestAskQuantity { get; set; }
-
-        public decimal BestBidPrice { get; set; }
-
-        public decimal BestBidQuantity { get; set; }
+        /// <summary>
+        /// Occurs when a <see cref="PrecisionTimerEvent"/> is already running and the user attempts to configure something that requires stopping it first
+        /// </summary>
+        /// <param name="message">User friendly error message</param>
+        public LongRunningTimerException(string message)
+            : base(message)
+        {
+            Console.WriteLine(message);
+        }
     }
 }

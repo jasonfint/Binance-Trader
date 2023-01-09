@@ -22,44 +22,30 @@
 *SOFTWARE.
 */
 
-using Newtonsoft.Json.Linq;
 using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
-namespace BinanceAPI.Sockets
+namespace PrecisionTiming
 {
-    /// <summary>
-    /// Message received event
-    /// </summary>
-    public class MessageEvent
+    internal static class MMTimerExports
     {
-        /// <summary>
-        /// The json object of the data
-        /// </summary>
-        public JToken JsonData { get; set; }
+        [DllImport(Constants.windowsMultimediaAPIString)]
+        internal static extern int timeBeginPeriod(int period);
 
-        /// <summary>
-        /// The originally received string data
-        /// </summary>
-        [AllowNull]
-        public string OriginalData { get; set; }
+        [DllImport(Constants.windowsMultimediaAPIString)]
+        internal static extern int timeEndPeriod(int period);
 
-        /// <summary>
-        /// The timestamp of when the data was received
-        /// </summary>
-        public DateTime ReceivedTimestamp { get; set; }
+        [DllImport(Constants.windowsMultimediaAPIString)]
+        internal static extern int timeGetDevCaps(ref TimerCapabilities caps, int sizeOfTimerCaps);
 
-        /// <summary>
-        /// The Message
-        /// </summary>
-        /// <param name="jsonData"></param>
-        /// <param name="originalData"></param>
-        /// <param name="timestamp"></param>
-        public MessageEvent(JToken jsonData, [AllowNull] string originalData, DateTime timestamp)
-        {
-            JsonData = jsonData;
-            OriginalData = originalData;
-            ReceivedTimestamp = timestamp;
-        }
+        [DllImport(Constants.windowsMultimediaAPIString)]
+        internal static extern int timeKillEvent(int id);
+
+        [DllImport(Constants.windowsMultimediaAPIString)]
+        internal static extern int timeSetEvent(int delay, int resolution, TimerProc proc, IntPtr user, TimerMode mode);
+
+        internal delegate void TimerProc(int hwnd, int uMsg, IntPtr idEvent, int dwTime, int WTFref);
+
+        public static TimerCapabilities Capabilities;
     }
 }

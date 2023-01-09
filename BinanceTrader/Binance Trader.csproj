@@ -16,9 +16,9 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Version>2.4.0.0</Version>
-		<FileVersion>2.4.0.0</FileVersion>
-		<AssemblyVersion>2.4.0.0</AssemblyVersion>
+		<Version>2.6.0.7</Version>
+		<FileVersion>2.6.0.7</FileVersion>
+		<AssemblyVersion>2.6.0.7</AssemblyVersion>
 		<Authors>S Christison</Authors>
 		<Company>S Christison</Company>
 		<Copyright>S Christison ©2022</Copyright>
@@ -51,16 +51,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="BVVM\BT\Json\TJsonTest\**" />
-	  <EmbeddedResource Remove="BVVM\BT\Json\TJsonTest\**" />
-	  <None Remove="BVVM\BT\Json\TJsonTest\**" />
-	  <Page Remove="BVVM\BT\Json\TJsonTest\**" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf">
-			<Version>1.1.39</Version>
-		</PackageReference>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
 	</ItemGroup>
 	

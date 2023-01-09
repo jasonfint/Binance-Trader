@@ -144,7 +144,7 @@ namespace BTNET.BVVM.Helpers
             if (t > (expireMs * 10000))
             {
                 // Run Action as Task
-                _ = Task.Run(() => OnExpireAction()).ConfigureAwait(false); 
+                _ = Task.Run(() => OnExpireAction()).ConfigureAwait(false);
 #if DEBUG
                 Console.WriteLine("Expired: " + t);
 #endif

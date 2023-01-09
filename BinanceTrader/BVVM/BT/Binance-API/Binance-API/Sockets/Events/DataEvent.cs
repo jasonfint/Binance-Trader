@@ -22,7 +22,6 @@
 *SOFTWARE.
 */
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace BinanceAPI.Sockets
@@ -34,66 +33,35 @@ namespace BinanceAPI.Sockets
     public class DataEvent<T>
     {
         /// <summary>
-        /// The timestamp the data was received
-        /// </summary>
-        public DateTime Timestamp { get; set; }
-
-        /// <summary>
         /// The topic of the update, what symbol/asset etc..
         /// </summary>
         [AllowNull]
         public string Topic { get; set; }
 
         /// <summary>
-        /// The original data that was received, only available when OutputOriginalData is set to true in the client options
-        /// </summary>
-        [AllowNull]
-        public string OriginalData { get; set; }
-
-        /// <summary>
         /// The received data deserialized into an object
         /// </summary>
         public T Data { get; set; }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="data">The received data deserialized into an object</param>
-        /// <param name="timestamp">timestamp that indicates when the event happened</param>
-        public DataEvent(T data, DateTime timestamp)
-        {
-            Data = data;
-            Timestamp = timestamp;
-        }
-
-        internal DataEvent(T data, [AllowNull] string topic, DateTime timestamp)
+        internal DataEvent(T data, [AllowNull] string topic)
         {
             Data = data;
             Topic = topic;
-            Timestamp = timestamp;
-        }
-
-        internal DataEvent(T data, [AllowNull] string topic, [AllowNull] string originalData, DateTime timestamp)
-        {
-            Data = data;
-            Topic = topic;
-            OriginalData = originalData;
-            Timestamp = timestamp;
         }
 
         /// <summary>
-        /// Create a new DataEvent with data in the from of type K based on the current DataEvent. Topic, OriginalData and Timestamp will be copied over
+        /// Create a new DataEvent with data in the from of type K based on the current DataEvent.
         /// </summary>
         /// <typeparam name="K">The type of the new data</typeparam>
         /// <param name="data">The new data</param>
         /// <returns></returns>
         public DataEvent<K> As<K>(K data)
         {
-            return new DataEvent<K>(data, Topic, OriginalData, Timestamp);
+            return new DataEvent<K>(data, Topic);
         }
 
         /// <summary>
-        /// Create a new DataEvent with data in the from of type K based on the current DataEvent. OriginalData and Timestamp will be copied over
+        /// Create a new DataEvent with data in the from of type K based on the current DataEvent.
         /// </summary>
         /// <typeparam name="K">The type of the new data</typeparam>
         /// <param name="data">The new data</param>
@@ -101,7 +69,7 @@ namespace BinanceAPI.Sockets
         /// <returns></returns>
         public DataEvent<K> As<K>(K data, [AllowNull] string topic)
         {
-            return new DataEvent<K>(data, topic, OriginalData, Timestamp);
+            return new DataEvent<K>(data, topic);
         }
     }
 }
