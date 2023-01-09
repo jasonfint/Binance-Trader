@@ -1,6 +1,6 @@
 ### Version 2.6.0.7
 - [x] You can no longer manually close unprofitable trades with the `Scraper`
-- [x] The `Scraper` will try avoid slippage when you click `Close`
+- [x] The `Scraper` will avoid slippage when you click `Close`
 - [x] Make sure the user can't click `Close` faster than possible
 - [x] Optimizations
 
