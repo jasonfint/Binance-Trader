@@ -98,183 +98,158 @@ namespace BTNET.BVVM
         {
             try
             {
-                await FindMissingOrdersInMemoryAsync(symbol).ConfigureAwait(false);
-                await UpdateFromOrderUpdatesAsync().ConfigureAwait(false);
-
-                if (Hidden.IsHideTriggered)
+                lock (MainOrders.OrderUpdateLock)
                 {
-                    Hidden.IsHideTriggered = false;
-                    await Hidden.EnumerateHiddenOrdersAsync().ConfigureAwait(false);
-                }
+                    IEnumerable<OrderViewModel>? OrderUpdate = Static.ManageStoredOrders.GetCurrentSymbolMemoryStoredOrders(symbol);
 
-                if (Hidden.IsStatusTriggered)
-                {
-                    Hidden.IsStatusTriggered = false;
-
-                    lock (MainOrders.OrderUpdateLock)
+                    if (OrderUpdate != null)
                     {
-                        foreach (OrderViewModel o in Current)
+                        if (OrderUpdate.Any())
                         {
-                            o.ScraperStatus = o.ScraperStatus;
+                            bool updated = false;
+                            List<OrderViewModel> temp = new();
+
+
+                            temp = Current.ToList();
+                            if (temp.Count == 0)
+                            {
+                                temp = OrderUpdate.ToList();
+                                if (temp.Count > 0)
+                                {
+                                    updated = true;
+                                }
+                            }
+                            else
+                            {
+                                foreach (var order in OrderUpdate.ToList())
+                                {
+                                    var exists = temp.Where(t => t.OrderId == order.OrderId).Any();
+                                    if (!exists)
+                                    {
+                                        temp.Add(order);
+                                        updated = true;
+#if DEBUG
+                                    WriteLog.Info("Dequeued: " + order.OrderId + " | " + order.Quantity + "| " + order.Type + " | " + order.Status);
+#endif
+                                    }
+                                }
+                            }
+
+                            if (updated && !LastChanceStop)
+                            {
+                                var orders = new ObservableCollection<OrderViewModel>(temp.OrderByDescending(d => d.CreateTime));
+
+                                InvokeUI.CheckAccess(() =>
+                                {
+                                    Current = orders;
+                                });
+
+#if DEBUG
+                            WriteLog.Info("Updated Orders: " + OrderUpdate.Count() + "/" + temp.Count);
+#endif
+                            }
+
                         }
                     }
                 }
 
-                var time = DateTime.UtcNow;
-                if (!Static.IsInvalidSymbol() && time > (LastRun + TimeSpan.FromMinutes(SERVER_ORDER_DELAY_MINS)))
+                if (!StoredExchangeInfo.IsNull())
                 {
-                    LastRun = time;
-                    await UpdateOrdersFromServerAsync().ConfigureAwait(false);
+                    while (DataEventWaiting.TryDequeue(out OrderUpdate NewOrder))
+                    {
+                        switch (NewOrder.Update.Status)
+                        {
+                            case OrderStatus.Canceled:
+                                {
+                                    WriteLog.Info("Added Cancelled Order to Deleted List: " + NewOrder.Update.OrderId);
+                                    continue;
+                                }
+                            case OrderStatus.Rejected:
+                                {
+                                    WriteLog.Error($"Order: " + NewOrder.Update.OrderId + " was Rejected OnOrderUpdate: " + NewOrder.Update.RejectReason);
+                                    continue;
+                                }
+                            default:
+                                {
+                                    ProcessOrder(NewOrder);
+                                    continue;
+                                }
+                        }
+                    }
+                }
+
+                if (Core.MainVM.IsSymbolSelected)
+                {
+                    var time = DateTime.UtcNow;
+                    if (!Static.IsInvalidSymbol() && time > (LastRun + TimeSpan.FromMinutes(SERVER_ORDER_DELAY_MINS)))
+                    {
+                        LastRun = time;
+
+                        WebCallResult<IEnumerable<BinanceOrderBase>>? webCallResult;
+
+                        if ((webCallResult = Static.CurrentTradingMode switch
+                        {
+                            TradingMode.Spot =>
+                            await Client.Local.Spot.Order.GetOrdersAsync(Static.SelectedSymbolViewModel.SymbolView.Symbol, null, null, null, NUM_ORDERS, receiveWindow: RECV_WINDOW),
+                            TradingMode.Margin =>
+                            await Client.Local.Margin.Order.GetMarginAccountOrdersAsync(Static.SelectedSymbolViewModel.SymbolView.Symbol, null, null, null, NUM_ORDERS, receiveWindow: RECV_WINDOW),
+                            TradingMode.Isolated =>
+                            await Client.Local.Margin.Order.GetMarginAccountOrdersAsync(Static.SelectedSymbolViewModel.SymbolView.Symbol, null, null, null, NUM_ORDERS, true, receiveWindow: RECV_WINDOW),
+                            _ => null,
+                        }) != null && webCallResult.Success)
+                        {
+                            List<OrderViewModel> OrderUpdate = new();
+
+                            if (webCallResult.Data.Count() > 0)
+                            {
+                                foreach (BinanceOrderBase o in webCallResult.Data)
+                                {
+                                    OrderUpdate.Add(OrderBase.NewOrderFromServer(o, Static.CurrentTradingMode));
+                                }
+                            }
+
+                            if (OrderUpdate.Count > 0)
+                            {
+                                foreach (var order in OrderUpdate)
+                                {
+                                    Static.ManageStoredOrders.AddSingleOrderToMemoryStorage(order, false);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (Hidden.IsHideTriggered || Hidden.IsStatusTriggered)
+                {
+                    Hidden.IsHideTriggered = false;
+                    Hidden.IsStatusTriggered = false;
+                    lock (MainOrders.OrderUpdateLock)
+                    {
+                        List<OrderViewModel> copy = Orders.Current.ToList();
+                        foreach (var r in copy)
+                        {
+                            InvokeUI.CheckAccess(() =>
+                            {
+                                r.ScraperStatus = r.ScraperStatus;
+                            });
+
+                            if (r.IsOrderHidden)
+                            {
+                                InvokeUI.CheckAccess(() =>
+                                {
+                                    r.SettleOrderEnabled = false;
+                                    r.SettleControlsEnabled = false;
+                                    Orders.Current.Remove(r);
+                                });
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
                 WriteLog.Error("Failure while getting Orders: ", ex);
             }
-        }
-
-        private Task FindMissingOrdersInMemoryAsync(string symbol)
-        {
-            lock (MainOrders.OrderUpdateLock)
-            {
-                IEnumerable<OrderViewModel>? OrderUpdate = Static.ManageStoredOrders.GetCurrentSymbolMemoryStoredOrders(symbol);
-
-                if (OrderUpdate != null)
-                {
-                    if (OrderUpdate.Any())
-                    {
-                        bool updated = false;
-                        List<OrderViewModel> temp = new();
-
-
-                        temp = Current.ToList();
-                        if (temp.Count == 0)
-                        {
-                            temp = OrderUpdate.ToList();
-                            if (temp.Count > 0)
-                            {
-                                updated = true;
-                            }
-                        }
-                        else
-                        {
-                            foreach (var order in OrderUpdate)
-                            {
-                                var exists = temp.Where(t => t.OrderId == order.OrderId).Any();
-                                if (!exists)
-                                {
-                                    temp.Add(order);
-                                    updated = true;
-#if DEBUG
-                                    WriteLog.Info("Dequeued: " + order.OrderId + " | " + order.Quantity + "| " + order.Type + " | " + order.Status);
-#endif
-                                }
-                            }
-                        }
-
-                        if (updated && !LastChanceStop)
-                        {
-                            var orders = new ObservableCollection<OrderViewModel>(temp.OrderByDescending(d => d.CreateTime));
-
-                            InvokeUI.CheckAccess(() =>
-                            {
-                                Current = orders;
-                            });
-
-#if DEBUG
-                            WriteLog.Info("Updated Orders: " + OrderUpdate.Count() + "/" + temp.Count);
-#endif
-                        }
-
-                    }
-                }
-            }
-
-            return Task.CompletedTask;
-        }
-
-        private async Task UpdateOrdersFromServerAsync()
-        {
-            if (Core.MainVM.IsSymbolSelected)
-            {
-                WebCallResult<IEnumerable<BinanceOrderBase>>? webCallResult;
-
-                if ((webCallResult = Static.CurrentTradingMode switch
-                {
-                    TradingMode.Spot =>
-                    await Client.Local.Spot.Order.GetOrdersAsync(Static.SelectedSymbolViewModel.SymbolView.Symbol, null, null, null, NUM_ORDERS, receiveWindow: RECV_WINDOW),
-                    TradingMode.Margin =>
-                    await Client.Local.Margin.Order.GetMarginAccountOrdersAsync(Static.SelectedSymbolViewModel.SymbolView.Symbol, null, null, null, NUM_ORDERS, receiveWindow: RECV_WINDOW),
-                    TradingMode.Isolated =>
-                    await Client.Local.Margin.Order.GetMarginAccountOrdersAsync(Static.SelectedSymbolViewModel.SymbolView.Symbol, null, null, null, NUM_ORDERS, true, receiveWindow: RECV_WINDOW),
-                    _ => null,
-                }) != null && webCallResult.Success)
-                {
-                    await EnumerateOrdersFromServerAsync(webCallResult.Data).ConfigureAwait(false);
-                }
-            }
-        }
-
-        private Task EnumerateOrdersFromServerAsync(IEnumerable<BinanceOrderBase> webCallResult)
-        {
-            List<OrderViewModel> OrderUpdate = new();
-
-            if (webCallResult.Count() > 0)
-            {
-                foreach (BinanceOrderBase o in webCallResult)
-                {
-                    OrderUpdate.Add(OrderBase.NewOrderFromServer(o, Static.CurrentTradingMode));
-                }
-            }
-
-            if (OrderUpdate.Count > 0)
-            {
-                foreach (var order in OrderUpdate)
-                {
-                    Static.ManageStoredOrders.AddSingleOrderToMemoryStorage(order, false);
-                }
-            }
-
-            return Task.CompletedTask;
-        }
-
-        private Task UpdateFromOrderUpdatesAsync()
-        {
-            if (StoredExchangeInfo.IsNull())
-            {
-                return Task.CompletedTask;
-            }
-
-            try
-            {
-                while (DataEventWaiting.TryDequeue(out OrderUpdate NewOrder))
-                {
-                    switch (NewOrder.Update.Status)
-                    {
-                        case OrderStatus.Canceled:
-                            {
-                                WriteLog.Info("Added Cancelled Order to Deleted List: " + NewOrder.Update.OrderId);
-                                continue;
-                            }
-                        case OrderStatus.Rejected:
-                            {
-                                WriteLog.Error($"Order: " + NewOrder.Update.OrderId + " was Rejected OnOrderUpdate: " + NewOrder.Update.RejectReason);
-                                continue;
-                            }
-                        default:
-                            {
-                                ProcessOrder(NewOrder);
-                                continue;
-                            }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                WriteLog.Error(ex);
-            }
-
-            return Task.CompletedTask;
         }
 
         private void ProcessOrder(OrderUpdate update)

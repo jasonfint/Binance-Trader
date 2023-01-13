@@ -989,10 +989,13 @@ namespace BTNET.BVVM
 
         public void DeleteRowLocal(object o)
         {
-            if (MainVM.IsListValidTarget())
+            _ = Task.Run(() =>
             {
-                Hidden.HideOrder(SelectedListItem);
-            }
+                if (MainVM.IsListValidTarget())
+                {
+                    Hidden.HideOrder(SelectedListItem);
+                }
+            }).ConfigureAwait(false);
         }
 
         public static async Task PaddingWidthAsync()
