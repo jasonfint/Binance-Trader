@@ -1,3 +1,6 @@
+### Version 2.7.1.2
+- [x] Hide all `Order Tasks` for the active order in the `Scraper`
+
 ### Version 2.7.1.1
 - [x] You can no longer click `Switch` while `Guess Buy` is running
 
