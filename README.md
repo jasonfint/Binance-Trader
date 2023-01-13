@@ -1,6 +1,4 @@
-[![GETTING STARTED-GREEN](https://user-images.githubusercontent.com/54571583/206889777-073ef7a5-8714-48d9-a31d-2f822c34a472.png)](https://github.com/HypsyNZ/Binance-Trader/wiki/Getting-Started)
-
-[![4](https://user-images.githubusercontent.com/54571583/206889849-233413ef-9219-45f5-9d94-04f12aad420a.png)](https://github.com/HypsyNZ/Binance-Trader/releases/)
+[![GETTING STARTED](https://user-images.githubusercontent.com/54571583/212339652-ddc16513-f9ea-4cde-8c55-9fd23d66d424.png)](https://github.com/HypsyNZ/Binance-Trader/wiki/Getting-Started) [![4](https://user-images.githubusercontent.com/54571583/212340920-42ea70d3-76d4-40fe-997d-c0f305578276.png)](https://github.com/HypsyNZ/Binance-Trader/releases/) [![RELEASE NOTES-black](https://user-images.githubusercontent.com/54571583/212339164-70a44d01-4113-4b74-acc0-893748b60923.png)](https://github.com/HypsyNZ/Binance-Trader/tree/master/BinanceTrader) 
 
 - [x] Spot/ Margin / Isolated
 - [x] Buy / Sell Market Orders
