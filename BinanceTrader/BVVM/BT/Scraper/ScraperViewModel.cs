@@ -22,8 +22,8 @@
 *SOFTWARE.
 */
 
-using BTNET.BV.Base;
 using BTNET.BV.Enum;
+using BTNET.BVVM;
 using BTNET.BVVM.BT;
 
 namespace BTNET.VM.ViewModels
@@ -118,7 +118,7 @@ namespace BTNET.VM.ViewModels
         private const decimal MINIMUM_STEP = 0.001m;
         private const decimal ONE_HUNDRED_PERCENT = ONE_HUNDRED;
 
-        protected private static decimal UpdateReversePnLPercent(OrderBase sell, decimal pnl, decimal reverseDown)
+        protected private static decimal UpdateReversePnLPercent(OrderViewModel sell, decimal pnl, decimal reverseDown)
         {
             if (pnl == ZERO)
             {
@@ -128,7 +128,7 @@ namespace BTNET.VM.ViewModels
             return (pnl / ((sell.CumulativeQuoteQuantityFilled / sell.QuantityFilled) * sell.QuantityFilled)) * ONE_HUNDRED;
         }
 
-        protected private static bool CalculateReverseInternal(OrderBase sell, decimal reverseDown, out decimal currentReverse)
+        protected private static bool CalculateReverseInternal(OrderViewModel sell, decimal reverseDown, out decimal currentReverse)
         {
             currentReverse = UpdateReversePnLPercent(sell, sell.Pnl, reverseDown);
 
@@ -140,13 +140,13 @@ namespace BTNET.VM.ViewModels
             return false;
         }
 
-        protected private static decimal UpdateCurrentPnlPercentInternal(OrderBase workingBuy, out decimal pnl)
+        protected private static decimal UpdateCurrentPnlPercentInternal(OrderViewModel workingBuy, out decimal pnl)
         {
             pnl = workingBuy.Pnl;
             return UpdatePnlPercent(workingBuy, workingBuy.Pnl);
         }
 
-        protected private static decimal UpdatePnlPercent(OrderBase order, decimal pnl)
+        protected private static decimal UpdatePnlPercent(OrderViewModel order, decimal pnl)
         {
             decimal total = ZERO;
             if (order.CumulativeQuoteQuantityFilled != ZERO)

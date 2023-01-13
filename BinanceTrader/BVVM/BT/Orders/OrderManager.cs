@@ -24,6 +24,7 @@
 
 using BTNET.BV.Base;
 using BTNET.BV.Enum;
+using BTNET.VM.ViewModels;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -42,11 +43,14 @@ namespace BTNET.BVVM.BT
             return AllSymbolOrders.Where(t => t.Symbol == symbol).Where(t => t.TradingMode == tradingMode).FirstOrDefault();
         }
 
-        public void NewSymbol(OrderBase order)
+        public void NewSymbol(OrderViewModel order)
         {
-            StoredOrdersSymbol newSymbol = new StoredOrdersSymbol(order.Symbol, order.OrderTradingMode);
-            newSymbol.BaseOrders.Add(order);
-            AllSymbolOrders.Add(newSymbol);
+            lock (MainOrders.OrderUpdateLock)
+            {
+                StoredOrdersSymbol newSymbol = new StoredOrdersSymbol(order.Symbol, order.OrderTradingMode);
+                newSymbol.BaseOrders.Add(order);
+                AllSymbolOrders.Add(newSymbol);
+            }
         }
 
         public void LoadAll()
@@ -73,7 +77,7 @@ namespace BTNET.BVVM.BT
 
                         foreach (var storedOrder in storedOrders)
                         {
-                            IEnumerable<OrderBase>? orders = Json.Load<List<OrderBase>>(storedOrder.FullName); //todo: see if I can change all of these to Enumerable
+                            IEnumerable<OrderViewModel>? orders = Json.Load<List<OrderViewModel>>(storedOrder.FullName); //todo: see if I can change all of these to Enumerable
                             if (orders != null)
                             {
                                 newSymbol.AddBulk(orders, mode);
@@ -94,54 +98,38 @@ namespace BTNET.BVVM.BT
             }
         }
 
-        public OrderBase ScraperOrderContextFromMemoryStorage(OrderBase order)
-        {
-            lock (MainOrders.OrderUpdateLock)
-            {
-                StoredOrdersSymbol temp = GetSymbol(order.Symbol, Static.CurrentTradingMode);
-                if (temp != null)
-                {
-                    var existingOrder = temp.BaseOrders.Where(t => t.OrderId == order.OrderId).FirstOrDefault();
-                    if (existingOrder != null)
-                    {
-                        existingOrder.Price = order.Price;
-                        existingOrder.QuantityFilled = order.QuantityFilled;
-                        existingOrder.CumulativeQuoteQuantityFilled = order.CumulativeQuoteQuantityFilled;
-                        existingOrder.Fulfilled = order.Fulfilled;
-                        existingOrder.Quantity = order.Quantity;
-                        existingOrder.Status = order.Status;
-                        existingOrder.Pnl = order.Pnl;
-                        existingOrder.CreateTime = order.CreateTime;
-                        existingOrder.UpdateTime = order.UpdateTime;
-                        existingOrder.PurchasedByScraper = order.PurchasedByScraper;
-                        existingOrder.ScraperStatus = order.ScraperStatus;
-                        existingOrder.IsOrderHidden = order.IsOrderHidden;
-                        existingOrder.OrderTradingMode = order.OrderTradingMode;
-
-                        return existingOrder;
-                    }
-                    else
-                    {
-                        temp.BaseOrders.Add(order);
-                    }
-                }
-                else
-                {
-                    NewSymbol(order);
-                }
-
-                return order;
-            }
-        }
-
-        public OrderBase GetSingleOrderContextFromMemoryStorage(OrderBase o)
+        public OrderViewModel GetSingleOrderContextFromMemoryStorage(OrderViewModel o)
         {
             return AddSingleOrderToMemoryStorage(o, false);
         }
 
-        public OrderBase AddSingleOrderToMemoryStorage(OrderBase order, bool canUpdateHide)
+        public OrderViewModel ScraperOrderContextFromMemoryStorage(OrderViewModel order)
         {
-            StoredOrdersSymbol temp = GetSymbol(order.Symbol, order.OrderTradingMode);
+            StoredOrdersSymbol? temp = null;
+            lock (MainOrders.OrderUpdateLock)
+            {
+                temp = GetSymbol(order.Symbol, Static.CurrentTradingMode);
+            }
+
+            if (temp != null)
+            {
+                return temp.AddOrderScraper(order);               
+            }
+            else
+            {
+                NewSymbol(order);
+            }
+
+            return order;
+        }
+
+        public OrderViewModel AddSingleOrderToMemoryStorage(OrderViewModel order, bool canUpdateHide)
+        {
+            StoredOrdersSymbol? temp = null;
+            lock (MainOrders.OrderUpdateLock)
+            {
+                temp = GetSymbol(order.Symbol, order.OrderTradingMode);
+            }
 
             if (temp != null)
             {
@@ -155,7 +143,7 @@ namespace BTNET.BVVM.BT
             return order;
         }
 
-        public IEnumerable<OrderBase>? GetCurrentSymbolMemoryStoredOrders(string symbol, TradingMode? mode = null)
+        public IEnumerable<OrderViewModel>? GetCurrentSymbolMemoryStoredOrders(string symbol, TradingMode? mode = null)
         {
             TradingMode tradeMode = mode ?? Static.CurrentTradingMode;
 

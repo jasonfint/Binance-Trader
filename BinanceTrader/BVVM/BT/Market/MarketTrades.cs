@@ -2,8 +2,10 @@
 using BinanceAPI.ClientHosts;
 using BinanceAPI.Objects.Spot.MarketStream;
 using BTNET.BV.Abstract;
+using BTNET.BV.Base;
 using BTNET.BVVM.Helpers;
 using BTNET.BVVM.Log;
+using BTNET.VM.ViewModels;
 using PrecisionTiming;
 using System;
 using System.Collections.Concurrent;
@@ -15,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace BTNET.BVVM.BT.Market
 {
-    public class MarketTrades : Core
+    public static class MarketTrades
     {
         private const string EXTREME = "Extreme";
         private const string HIGH = "High";
@@ -48,44 +50,26 @@ namespace BTNET.BVVM.BT.Market
         private const int FIFTY_MS_IN_TICKS = 500_000;
         private const string ERROR = "Error:";
 
-        protected private static BaseSocketClient? SocketClient = null;
-        protected private static Stopwatch Stopwatch = new Stopwatch();
-        protected private static SemaphoreSlim Slim = new SemaphoreSlim(1, 1);
-        protected private static ConcurrentQueue<BinanceStreamTrade> TradeQueue = new ConcurrentQueue<BinanceStreamTrade>();
+        private static BaseSocketClient? SocketClient = null;
+        private static Stopwatch Stopwatch = new Stopwatch();
+        private static SemaphoreSlim Slim = new SemaphoreSlim(1, 1);
+        private static ConcurrentQueue<BinanceStreamTrade> TradeQueue = new ConcurrentQueue<BinanceStreamTrade>();
 
-        protected static PrecisionTimer Remover = new PrecisionTimer();
-        protected static PrecisionTimer QueueTimer = new PrecisionTimer();
-        protected static PrecisionTimer FiveMinutes = new PrecisionTimer();
-        protected static PrecisionTimer FifteenMinutes = new PrecisionTimer();
-        protected static PrecisionTimer OneHour = new PrecisionTimer();
-        protected static PrecisionTimer OneMinute = new PrecisionTimer();
-        protected static PrecisionTimer FiveSeconds = new PrecisionTimer();
-        protected static PrecisionTimer OneSecond = new PrecisionTimer();
-        protected static PrecisionTimer InsightsTimer = new PrecisionTimer();
+        private static PrecisionTimer Remover = new PrecisionTimer();
+        private static PrecisionTimer QueueTimer = new PrecisionTimer();
+        private static PrecisionTimer FiveMinutes = new PrecisionTimer();
+        private static PrecisionTimer FifteenMinutes = new PrecisionTimer();
+        private static PrecisionTimer OneHour = new PrecisionTimer();
+        private static PrecisionTimer OneMinute = new PrecisionTimer();
+        private static PrecisionTimer FiveSeconds = new PrecisionTimer();
+        private static PrecisionTimer OneSecond = new PrecisionTimer();
+        private static PrecisionTimer InsightsTimer = new PrecisionTimer();
 
-        private TradeTicks TradeTicks;
-        private TradeTicks TradeTicksTwo;
-        private TradeTicks TradeTicksOneHour;
+        private static TradeTicks TradeTicks = new TradeTicks();
+        private static TradeTicks TradeTicksTwo = new TradeTicks();
+        private static TradeTicks TradeTicksOneHour = new TradeTicks();
 
-        public MarketTrades()
-        {
-            OneSecond = new PrecisionTimer();
-            FiveSeconds = new PrecisionTimer();
-            OneMinute = new PrecisionTimer();
-            FiveMinutes = new PrecisionTimer();
-            FifteenMinutes = new PrecisionTimer();
-            OneHour = new PrecisionTimer();
-
-            TradeTicksOneHour = new TradeTicks();
-            TradeTicks = new TradeTicks();
-            TradeTicksTwo = new TradeTicks();
-
-            Remover = new PrecisionTimer();
-            QueueTimer = new PrecisionTimer();
-            InsightsTimer = new PrecisionTimer();
-        }
-
-        public void Start(string symbol, SocketClientHost host)
+        public static void Start(string symbol, SocketClientHost host, MarketViewModel mvm, ServerTimeViewModel st)
         {
             Clear();
             SubscribeToTrades(symbol, host);
@@ -99,96 +83,96 @@ namespace BTNET.BVVM.BT.Market
 
             OneSecond.SetInterval(() =>
             {
-                PeriodTick? r = CalculatePeriodTick(TimeSpan.FromSeconds(ONE), TradeTicksTwo);
+                PeriodTick? r = CalculatePeriodTick(TimeSpan.FromSeconds(ONE), TradeTicksTwo, st);
                 if (r != null)
                 {
                     InvokeUI.CheckAccess(() =>
                     {
-                        MarketVM.AverageOneSecond = r.Average;
-                        MarketVM.HighOneSecond = r.High;
-                        MarketVM.LowOneSecond = r.Low;
-                        MarketVM.Diff2OneSecond = r.Diff2;
-                        MarketVM.VolumeOneSecond = r.Volume;
+                        mvm.AverageOneSecond = r.Average;
+                        mvm.HighOneSecond = r.High;
+                        mvm.LowOneSecond = r.Low;
+                        mvm.Diff2OneSecond = r.Diff2;
+                        mvm.VolumeOneSecond = r.Volume;
                     });
                 }
             }, TWO, resolution: TIMER_RESOLUTION);
 
             FiveSeconds.SetInterval(() =>
             {
-                PeriodTick? r = CalculatePeriodTick(TimeSpan.FromSeconds(FIVE), TradeTicksTwo);
+                PeriodTick? r = CalculatePeriodTick(TimeSpan.FromSeconds(FIVE), TradeTicksTwo, st);
                 if (r != null)
                 {
                     InvokeUI.CheckAccess(() =>
                     {
-                        MarketVM.Diff2FiveSeconds = r.Diff2;
-                        MarketVM.HighFiveSeconds = r.High;
-                        MarketVM.LowFiveSeconds = r.Low;
-                        MarketVM.VolumeFiveSeconds = r.Volume;
-                        MarketVM.AverageFiveSeconds = r.Average;
+                        mvm.Diff2FiveSeconds = r.Diff2;
+                        mvm.HighFiveSeconds = r.High;
+                        mvm.LowFiveSeconds = r.Low;
+                        mvm.VolumeFiveSeconds = r.Volume;
+                        mvm.AverageFiveSeconds = r.Average;
                     });
                 }
             }, TWO, resolution: TIMER_RESOLUTION);
 
             OneMinute.SetInterval(() =>
             {
-                PeriodTick? r = CalculatePeriodTick(TimeSpan.FromMinutes(ONE), TradeTicksTwo);
+                PeriodTick? r = CalculatePeriodTick(TimeSpan.FromMinutes(ONE), TradeTicksTwo, st);
                 if (r != null)
                 {
                     InvokeUI.CheckAccess(() =>
                     {
-                        MarketVM.Diff2 = r.Diff2;
-                        MarketVM.High = r.High;
-                        MarketVM.Low = r.Low;
-                        MarketVM.Volume = r.Volume;
-                        MarketVM.Average = r.Average;
+                        mvm.Diff2 = r.Diff2;
+                        mvm.High = r.High;
+                        mvm.Low = r.Low;
+                        mvm.Volume = r.Volume;
+                        mvm.Average = r.Average;
                     });
                 }
             }, FIFTY_MS, resolution: TIMER_RESOLUTION);
 
             FiveMinutes.SetInterval(() =>
             {
-                PeriodTick? r = CalculatePeriodTick(TimeSpan.FromMinutes(FIVE), TradeTicks);
+                PeriodTick? r = CalculatePeriodTick(TimeSpan.FromMinutes(FIVE), TradeTicks, st);
                 if (r != null)
                 {
                     InvokeUI.CheckAccess(() =>
                     {
-                        MarketVM.Diff2Five = r.Diff2;
-                        MarketVM.HighFive = r.High;
-                        MarketVM.LowFive = r.Low;
-                        MarketVM.VolumeFive = r.Volume;
-                        MarketVM.AverageFive = r.Average;
+                        mvm.Diff2Five = r.Diff2;
+                        mvm.HighFive = r.High;
+                        mvm.LowFive = r.Low;
+                        mvm.VolumeFive = r.Volume;
+                        mvm.AverageFive = r.Average;
                     });
                 }
             }, FIFTY_MS, resolution: TIMER_RESOLUTION);
 
             FifteenMinutes.SetInterval(() =>
             {
-                PeriodTick? r = CalculatePeriodTick(TimeSpan.FromMinutes(FIFTEEN), TradeTicks);
+                PeriodTick? r = CalculatePeriodTick(TimeSpan.FromMinutes(FIFTEEN), TradeTicks, st);
                 if (r != null)
                 {
                     InvokeUI.CheckAccess(() =>
                     {
-                        MarketVM.Diff2Fifteen = r.Diff2;
-                        MarketVM.HighFifteen = r.High;
-                        MarketVM.LowFifteen = r.Low;
-                        MarketVM.VolumeFifteen = r.Volume;
-                        MarketVM.AverageFifteen = r.Average;
+                        mvm.Diff2Fifteen = r.Diff2;
+                        mvm.HighFifteen = r.High;
+                        mvm.LowFifteen = r.Low;
+                        mvm.VolumeFifteen = r.Volume;
+                        mvm.AverageFifteen = r.Average;
                     });
                 }
             }, FIFTY_MS, resolution: TIMER_RESOLUTION);
 
             OneHour.SetInterval(() =>
             {
-                PeriodTick? r = CalculatePeriodTick(TimeSpan.FromHours(ONE), TradeTicksOneHour);
+                PeriodTick? r = CalculatePeriodTick(TimeSpan.FromHours(ONE), TradeTicksOneHour, st);
                 if (r != null)
                 {
                     InvokeUI.CheckAccess(() =>
                     {
-                        MarketVM.Diff2Hour = r.Diff2;
-                        MarketVM.HighHour = r.High;
-                        MarketVM.LowHour = r.Low;
-                        MarketVM.VolumeHour = r.Volume;
-                        MarketVM.AverageHour = r.Average;
+                        mvm.Diff2Hour = r.Diff2;
+                        mvm.HighHour = r.High;
+                        mvm.LowHour = r.Low;
+                        mvm.VolumeHour = r.Volume;
+                        mvm.AverageHour = r.Average;
                     });
                 }
             }, FIFTY_MS, resolution: TIMER_RESOLUTION);
@@ -198,14 +182,14 @@ namespace BTNET.BVVM.BT.Market
                 int countHigh = ZERO;
                 int countLow = ZERO;
 
-                bool fiveHigh = MarketVM.HighFiveSeconds >= MarketVM.HighFive;
-                bool fiveLow = MarketVM.LowFiveSeconds <= MarketVM.LowFive;
+                bool fiveHigh = mvm.HighFiveSeconds >= mvm.HighFive;
+                bool fiveLow = mvm.LowFiveSeconds <= mvm.LowFive;
 
-                bool fifteenHigh = MarketVM.HighFiveSeconds >= MarketVM.HighFifteen;
-                bool fifteenLow = MarketVM.LowFiveSeconds <= MarketVM.LowFifteen;
+                bool fifteenHigh = mvm.HighFiveSeconds >= mvm.HighFifteen;
+                bool fifteenLow = mvm.LowFiveSeconds <= mvm.LowFifteen;
 
-                bool hourHigh = MarketVM.HighFiveSeconds >= MarketVM.HighHour;
-                bool hourLow = MarketVM.LowFiveSeconds <= MarketVM.LowHour;
+                bool hourHigh = mvm.HighFiveSeconds >= mvm.HighHour;
+                bool hourLow = mvm.LowFiveSeconds <= mvm.LowHour;
 
                 if (fifteenHigh)
                 {
@@ -237,42 +221,42 @@ namespace BTNET.BVVM.BT.Market
                     countLow++;
                 }
 
-                MarketVM.Insights.NewLowFifteen = fifteenLow;
-                MarketVM.Insights.NewHighFifteen = fifteenHigh;
+                mvm.Insights.NewLowFifteen = fifteenLow;
+                mvm.Insights.NewHighFifteen = fifteenHigh;
 
-                MarketVM.Insights.NewLow = countLow == HIGH_LOW_ACTIVE ? true : false;
-                MarketVM.Insights.NewHigh = countHigh == HIGH_LOW_ACTIVE ? true : false;
+                mvm.Insights.NewLow = countLow == HIGH_LOW_ACTIVE ? true : false;
+                mvm.Insights.NewHigh = countHigh == HIGH_LOW_ACTIVE ? true : false;
 
-                MarketVM.Insights.NewHighHour = hourHigh;
-                MarketVM.Insights.NewLowHour = hourLow;
+                mvm.Insights.NewHighHour = hourHigh;
+                mvm.Insights.NewLowHour = hourLow;
 
-                MarketVM.Insights.NewHighFive = fiveHigh;
-                MarketVM.Insights.NewLowFive = fiveLow;
+                mvm.Insights.NewHighFive = fiveHigh;
+                mvm.Insights.NewLowFive = fiveLow;
 
-                MarketVM.Insights.NewHighOneSecond = MarketVM.HighOneSecond >= MarketVM.HighFiveSeconds;
-                MarketVM.Insights.NewLowOneSecond = MarketVM.LowOneSecond <= MarketVM.LowFiveSeconds;
-
-
-                MarketVM.Insights.NewDifference = MarketVM.Diff2FiveSeconds >= MarketVM.Diff2Hour ? true : false;
-
-                var minutes = MarketVM.Insights.StartTime.Elapsed.TotalMinutes;
+                mvm.Insights.NewHighOneSecond = mvm.HighOneSecond >= mvm.HighFiveSeconds;
+                mvm.Insights.NewLowOneSecond = mvm.LowOneSecond <= mvm.LowFiveSeconds;
 
 
-                if (!MarketVM.Insights.Ready)
+                mvm.Insights.NewDifference = mvm.Diff2FiveSeconds >= mvm.Diff2Hour ? true : false;
+
+                var minutes = mvm.Insights.StartTime.Elapsed.TotalMinutes;
+
+
+                if (!mvm.Insights.Ready)
                 {
-                    MarketVM.Insights.Ready = minutes >= INSIGHT_READY_TIME_MIM;
+                    mvm.Insights.Ready = minutes >= INSIGHT_READY_TIME_MIM;
                 }
 
-                if (!MarketVM.Insights.Ready15Minutes)
+                if (!mvm.Insights.Ready15Minutes)
                 {
-                    MarketVM.Insights.Ready15Minutes = minutes >= INSIGHT_15_READY_TIME_MIN;
+                    mvm.Insights.Ready15Minutes = minutes >= INSIGHT_15_READY_TIME_MIN;
                 }
 
-                if (MarketVM.Volume > ZERO && MarketVM.VolumeHour > ZERO)
+                if (mvm.Volume > ZERO && mvm.VolumeHour > ZERO)
                 {
-                    decimal volDiv2 = (MarketVM.Volume / MarketVM.VolumeHour) * ONE_HUNDRED_PERCENT;
-                    MarketVM.Insights.VolumeLevelDecimal = volDiv2;
-                    MarketVM.Insights.VolumeLevel = volDiv2 > EXTREME_VOL_DIFF ? EXTREME : volDiv2 > HIGH_VOL_DIFF ? HIGH : volDiv2 > STRONG_VOL_DIFF ? STRONG : volDiv2 > AVERAGE_VOL_DIFF ? AVERAGE : volDiv2 > SLOW_VOL_DIFF ? SLOW : WEAK;
+                    decimal volDiv2 = (mvm.Volume / mvm.VolumeHour) * ONE_HUNDRED_PERCENT;
+                    mvm.Insights.VolumeLevelDecimal = volDiv2;
+                    mvm.Insights.VolumeLevel = volDiv2 > EXTREME_VOL_DIFF ? EXTREME : volDiv2 > HIGH_VOL_DIFF ? HIGH : volDiv2 > STRONG_VOL_DIFF ? STRONG : volDiv2 > AVERAGE_VOL_DIFF ? AVERAGE : volDiv2 > SLOW_VOL_DIFF ? SLOW : WEAK;
                 }
             }, SLIDE, resolution: TIMER_RESOLUTION);
 
@@ -281,7 +265,7 @@ namespace BTNET.BVVM.BT.Market
                 List<BinanceStreamTrade>? tq = ProcessTradeQueue();
                 if (tq != null)
                 {
-                    TradeTick? pt = CalculateTradeTick(tq);
+                    TradeTick? pt = CalculateTradeTick(tq, st);
                     if (pt != null)
                     {
                         TradeTicks.Add(pt);
@@ -291,17 +275,17 @@ namespace BTNET.BVVM.BT.Market
                 }
             }, ONE, resolution: TIMER_RESOLUTION);
 
-            MarketVM.Insights.StartTime = Stopwatch.StartNew();
+            mvm.Insights.StartTime = Stopwatch.StartNew();
         }
 
-        public async void Stop()
+        public static async void Stop(MarketViewModel mv)
         {
-            ResetTimers();
+            ResetTimers(mv);
             Clear();
             await Remove().ConfigureAwait(false);
         }
 
-        private void ResetTimers()
+        private static void ResetTimers(MarketViewModel mv)
         {
             OneSecond.Stop();
             FiveSeconds.Stop();
@@ -314,7 +298,7 @@ namespace BTNET.BVVM.BT.Market
             QueueTimer.Stop();
             Remover.Stop();
 
-            MarketVM.Insights.StartTime.Stop();
+            mv.Insights.StartTime.Stop();
 
             FiveSeconds = new PrecisionTimer();
             OneMinute = new PrecisionTimer();
@@ -328,7 +312,7 @@ namespace BTNET.BVVM.BT.Market
             Remover = new PrecisionTimer();
         }
 
-        private void Clear()
+        private static void Clear()
         {
             TradeTicks = new TradeTicks();
             TradeTicksTwo = new TradeTicks();
@@ -336,7 +320,7 @@ namespace BTNET.BVVM.BT.Market
             TradeQueue = new ConcurrentQueue<BinanceStreamTrade>();
         }
 
-        private async Task Remove()
+        private static async Task Remove()
         {
             try
             {
@@ -351,9 +335,9 @@ namespace BTNET.BVVM.BT.Market
             }
         }
 
-        private PeriodTick? CalculatePeriodTick(TimeSpan timespan, TradeTicks tradeTicks)
+        private static PeriodTick? CalculatePeriodTick(TimeSpan timespan, TradeTicks tradeTicks, ServerTimeViewModel st)
         {
-            var r = tradeTicks.Get(ServerTimeVM.Time - timespan);
+            var r = tradeTicks.Get(st.Time - timespan);
             if (r.Count() > ZERO)
             {
                 decimal high = ZERO;
@@ -394,14 +378,14 @@ namespace BTNET.BVVM.BT.Market
                     Low = low,
                     Volume = volume,
                     Diff2 = diff2,
-                    Time = ServerTimeVM.Time
+                    Time = st.Time
                 };
             }
 
             return null;
         }
 
-        private TradeTick? CalculateTradeTick(IEnumerable<BinanceStreamTrade>? trades)
+        private static TradeTick? CalculateTradeTick(IEnumerable<BinanceStreamTrade>? trades, ServerTimeViewModel st)
         {
             if (trades == null)
             {
@@ -444,14 +428,14 @@ namespace BTNET.BVVM.BT.Market
                     High = high,
                     Low = low,
                     Volume = volume,
-                    Time = ServerTimeVM.Time
+                    Time = st.Time
                 };
             }
 
             return null;
         }
 
-        private List<BinanceStreamTrade>? ProcessTradeQueue()
+        private static List<BinanceStreamTrade>? ProcessTradeQueue()
         {
             bool b = Slim.Wait(ZERO);
             if (b)
@@ -485,7 +469,7 @@ namespace BTNET.BVVM.BT.Market
             return null;
         }
 
-        private async void SubscribeToTrades(string symbol, SocketClientHost socket)
+        private static async void SubscribeToTrades(string symbol, SocketClientHost socket)
         {
             var r = await socket.Spot.SubscribeToTradeUpdatesAsync(symbol, (data =>
             {
@@ -502,7 +486,7 @@ namespace BTNET.BVVM.BT.Market
             }
         }
 
-        public void Dispose()
+        public static void Dispose()
         {
             QueueTimer.Dispose();
             TradeQueue = null!;

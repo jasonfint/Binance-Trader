@@ -1,3 +1,12 @@
+### Version 2.7.1.1
+- [x] You can no longer click `Switch` while `Guess Buy` is running
+
+### Version 2.7.1.0
+- [x] Fix a bug that Stops the Scraper if you click `Add` too fast.
+
+### Version 2.7.0.9
+- [x] Fix a crash that occurred if you click `Close` very rapidly.
+
 ### Version 2.7.0.7
 - [x] You can no longer use the `Order Detail` bot for orders being used by the `Scraper`
 - [x] If the `Scraper` focuses an `Order` that is using `Order Detail` it will close the `Order Detail` window and stop the bot.

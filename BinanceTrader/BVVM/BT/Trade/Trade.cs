@@ -26,10 +26,10 @@ using BinanceAPI;
 using BinanceAPI.Enums;
 using BinanceAPI.Objects;
 using BinanceAPI.Objects.Spot.SpotData;
-using BTNET.BV.Base;
 using BTNET.BV.Enum;
 using BTNET.BVVM.Helpers;
 using BTNET.BVVM.Log;
+using BTNET.VM.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -143,7 +143,7 @@ namespace BTNET.BVVM.BT
                 {
                     WriteLog.Info("Clearing Order List");
 
-                    List<OrderBase> orderBases = new();
+                    List<OrderViewModel> orderBases = new();
 
                     lock (MainOrders.OrderUpdateLock)
                     {

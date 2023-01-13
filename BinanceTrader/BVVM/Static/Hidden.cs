@@ -22,8 +22,8 @@
 *SOFTWARE.
 */
 
-using BTNET.BV.Base;
 using BTNET.BVVM.Helpers;
+using BTNET.VM.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,7 +36,7 @@ namespace BTNET.BVVM
 
         public static bool IsStatusTriggered = false;
 
-        public static void HideOrder(OrderBase order)
+        public static void HideOrder(OrderViewModel order)
         {
             InvokeUI.CheckAccess(() =>
             {
@@ -47,9 +47,9 @@ namespace BTNET.BVVM
             IsHideTriggered = true;
         }
 
-        public static void HideOrderBulk(IEnumerable<OrderBase> orders)
+        public static void HideOrderBulk(IEnumerable<OrderViewModel> orders)
         {
-            foreach (OrderBase order in orders)
+            foreach (OrderViewModel order in orders)
             {
                 InvokeUI.CheckAccess(() =>
                 {
@@ -75,7 +75,7 @@ namespace BTNET.BVVM
 
             lock (MainOrders.OrderUpdateLock)
             {
-                List<OrderBase> copy = Orders.Current.ToList();
+                List<OrderViewModel> copy = Orders.Current.ToList();
 
                 foreach (var r in copy.Where(r => r.IsOrderHidden))
                 {

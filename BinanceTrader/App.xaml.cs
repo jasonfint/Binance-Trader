@@ -22,10 +22,10 @@
 *SOFTWARE.
 */
 
-using BTNET.BV.Base;
 using BTNET.BV.Enum;
 using BTNET.BVVM;
 using BTNET.BVVM.BT;
+using BTNET.VM.ViewModels;
 using BTNET.VM.Views;
 using PrecisionTiming;
 using System;
@@ -71,7 +71,7 @@ namespace BTNET
         /// Occurs when processing an Order from a Order Task fails
         /// <para>returns a string describing the error and the order where possible</para>
         /// </summary>
-        public static EventHandler<OrderBase?>? OrderTaskFailed;
+        public static EventHandler<OrderViewModel?>? OrderTaskFailed;
 
         /// <summary>
         /// Occurs when the user changes the Trading Mode

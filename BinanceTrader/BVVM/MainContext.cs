@@ -27,6 +27,7 @@ using BinanceAPI.Objects.Spot.SpotData;
 using BTNET.BV.Base;
 using BTNET.BV.Enum;
 using BTNET.BVVM.BT;
+using BTNET.BVVM.BT.Market;
 using BTNET.BVVM.Helpers;
 using BTNET.BVVM.Log;
 using BTNET.VM.ViewModels;
@@ -779,7 +780,7 @@ namespace BTNET.BVVM
                 WriteLog.Info(CHANGING_SYMBOL + symbol);
                 NotifyVM.Notification(CHANGING_SYMBOL + symbol);
 
-                Market.Stop();
+                MarketTrades.Stop(MarketVM);
                 MarketVM.Clear();
 
                 InvokeUI.CheckAccess(() =>
@@ -917,7 +918,7 @@ namespace BTNET.BVVM
                 }
             }
 
-            Market.Start(Static.CurrentSymbolInfo.Name, Client.SocketClient);
+            MarketTrades.Start(Static.CurrentSymbolInfo.Name, Client.SocketClient, MarketVM, ServerTimeVM);
 
             return true;
         }

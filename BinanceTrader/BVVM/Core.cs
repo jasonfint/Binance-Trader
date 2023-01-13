@@ -23,7 +23,6 @@
 */
 
 using BTNET.BV.Base;
-using BTNET.BVVM.BT.Market;
 using BTNET.VM.ViewModels;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -42,11 +41,9 @@ namespace BTNET.BVVM
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(callerName));
         }
 
-        public static MarketTrades Market { get; set; } = new();
-
         public static BTClient Client { get; set; } = null!;
 
-        public static OrderBase SelectedListItem { get; set; } = new();
+        public static OrderViewModel SelectedListItem { get; set; } = new();
         public static MainOrders Orders { get; set; } = new();
 
         public static MainViewModel MainVM { get; set; } = new(null!);

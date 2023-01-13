@@ -22,13 +22,13 @@
 *SOFTWARE.
 */
 
-using BTNET.BV.Base;
 using BTNET.BVVM;
 using BTNET.BVVM.BT;
 using BTNET.BVVM.BT.Args;
 using BTNET.BVVM.BT.Orders;
 using BTNET.BVVM.Helpers;
 using BTNET.BVVM.Log;
+using BTNET.VM.ViewModels;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
@@ -40,10 +40,10 @@ namespace BTNET.VM.Views
 {
     public partial class OrderDetailView : Window
     {
-        private readonly OrderBase CurrentOrder;
+        private readonly OrderViewModel CurrentOrder;
         internal Ticker? SymbolTickerFeed = null;
 
-        public OrderDetailView(OrderBase initialOrder)
+        public OrderDetailView(OrderViewModel initialOrder)
         {
             CurrentOrder = Static.ManageStoredOrders.GetSingleOrderContextFromMemoryStorage(initialOrder);
             DataContext = CurrentOrder;

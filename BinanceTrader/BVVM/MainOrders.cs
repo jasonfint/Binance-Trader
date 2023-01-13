@@ -34,6 +34,7 @@ using BTNET.BVVM.BT.Orders;
 using BTNET.BVVM.Helpers;
 using BTNET.BVVM.Log;
 using BTNET.BVVM.Orders;
+using BTNET.VM.ViewModels;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -70,9 +71,9 @@ namespace BTNET.BVVM
         /// </summary>
         public static DateTime LastRun { get; set; }
 
-        private ObservableCollection<OrderBase> orders = new();
+        private ObservableCollection<OrderViewModel> orders = new();
 
-        public ObservableCollection<OrderBase> Current
+        public ObservableCollection<OrderViewModel> Current
         {
             get => orders;
             set
@@ -112,7 +113,7 @@ namespace BTNET.BVVM
 
                     lock (MainOrders.OrderUpdateLock)
                     {
-                        foreach (OrderBase o in Current)
+                        foreach (OrderViewModel o in Current)
                         {
                             o.ScraperStatus = o.ScraperStatus;
                         }
@@ -136,14 +137,14 @@ namespace BTNET.BVVM
         {
             lock (MainOrders.OrderUpdateLock)
             {
-                IEnumerable<OrderBase>? OrderUpdate = Static.ManageStoredOrders.GetCurrentSymbolMemoryStoredOrders(symbol);
+                IEnumerable<OrderViewModel>? OrderUpdate = Static.ManageStoredOrders.GetCurrentSymbolMemoryStoredOrders(symbol);
 
                 if (OrderUpdate != null)
                 {
                     if (OrderUpdate.Any())
                     {
                         bool updated = false;
-                        List<OrderBase> temp = new();
+                        List<OrderViewModel> temp = new();
 
 
                         temp = Current.ToList();
@@ -173,7 +174,7 @@ namespace BTNET.BVVM
 
                         if (updated && !LastChanceStop)
                         {
-                            var orders = new ObservableCollection<OrderBase>(temp.OrderByDescending(d => d.CreateTime));
+                            var orders = new ObservableCollection<OrderViewModel>(temp.OrderByDescending(d => d.CreateTime));
 
                             InvokeUI.CheckAccess(() =>
                             {
@@ -216,13 +217,13 @@ namespace BTNET.BVVM
 
         private Task EnumerateOrdersFromServerAsync(IEnumerable<BinanceOrderBase> webCallResult)
         {
-            List<OrderBase> OrderUpdate = new();
+            List<OrderViewModel> OrderUpdate = new();
 
             if (webCallResult.Count() > 0)
             {
                 foreach (BinanceOrderBase o in webCallResult)
                 {
-                    OrderUpdate.Add(Order.NewOrderFromServer(o, Static.CurrentTradingMode));
+                    OrderUpdate.Add(OrderBase.NewOrderFromServer(o, Static.CurrentTradingMode));
                 }
             }
 
@@ -290,7 +291,7 @@ namespace BTNET.BVVM
                 orderPrice = update.Update.Price != 0 ? update.Update.Price : update.Update.LastPriceFilled;
             }
 
-            OrderBase OrderIsCurrentSymbol;
+            OrderViewModel OrderIsCurrentSymbol;
 
             lock (OrderUpdateLock)
             {
@@ -416,7 +417,7 @@ namespace BTNET.BVVM
             return CreateTime.Ticks;
         }
 
-        public void SaveAndUpdateOrder(OrderBase order, BinanceStreamOrderUpdate d, decimal convertedPrice)
+        public void SaveAndUpdateOrder(OrderViewModel order, BinanceStreamOrderUpdate d, decimal convertedPrice)
         {
             order.Quantity = d.Quantity;
             order.QuantityFilled = d.QuantityFilled;
@@ -437,7 +438,7 @@ namespace BTNET.BVVM
 
         public void SaveAndAddOrder(BinanceStreamOrderUpdate data, decimal convertedPrice, TradingMode tradingMode)
         {
-            OrderBase OrderToAdd = Order.NewOrderOnUpdate(data, convertedPrice, tradingMode);
+            OrderViewModel OrderToAdd = OrderBase.NewOrderOnUpdate(data, convertedPrice, tradingMode);
 #if DEBUG
             WriteLog.Info("New Order: " + data.CreateTime);
 #endif

@@ -23,7 +23,6 @@
 */
 
 using BinanceAPI.Enums;
-using BTNET.BV.Base;
 using BTNET.BVVM;
 using BTNET.BVVM.BT.Orders;
 using BTNET.BVVM.Helpers;
@@ -54,37 +53,37 @@ namespace BTNET.VM.ViewModels
 
         private void Buy(object o)
         {
-            OrderBase order = (OrderBase)o;
+            OrderViewModel order = (OrderViewModel)o;
             InternalOrderTasks.ProcessOrder(order, OrderSide.Buy, false, false);
         }
 
         private void BuyAndSettle(object o)
         {
-            OrderBase order = (OrderBase)o;
+            OrderViewModel order = (OrderViewModel)o;
             InternalOrderTasks.ProcessOrder(order, OrderSide.Buy, false);
         }
 
         private void BuyBorrowAndSettle(object o)
         {
-            OrderBase order = (OrderBase)o;
+            OrderViewModel order = (OrderViewModel)o;
             InternalOrderTasks.ProcessOrder(order, OrderSide.Buy, true);
         }
 
         private void Sell(object o)
         {
-            OrderBase order = (OrderBase)o;
+            OrderViewModel order = (OrderViewModel)o;
             InternalOrderTasks.ProcessOrder(order, OrderSide.Sell, false, false);
         }
 
         private void SellAndSettle(object o)
         {
-            OrderBase order = (OrderBase)o;
+            OrderViewModel order = (OrderViewModel)o;
             InternalOrderTasks.ProcessOrder(order, OrderSide.Sell, false);
         }
 
         private void SellBorrowAndSettle(object o)
         {
-            OrderBase order = (OrderBase)o;
+            OrderViewModel order = (OrderViewModel)o;
             InternalOrderTasks.ProcessOrder(order, OrderSide.Sell, true);
         }
     }

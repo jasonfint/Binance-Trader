@@ -23,6 +23,8 @@
 */
 
 using BTNET.BV.Enum;
+using BTNET.BVVM;
+using BTNET.VM.ViewModels;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -34,7 +36,7 @@ namespace BTNET.BV.Base
     {
         private static object _lock = new object();
 
-        public List<OrderBase> BaseOrders { get; set; } = new List<OrderBase>();
+        public List<OrderViewModel> BaseOrders { get; set; } = new List<OrderViewModel>();
         public TradingMode TradingMode { get; set; } = TradingMode.Error;
         public string Symbol { get; set; } = string.Empty;
 
@@ -55,11 +57,11 @@ namespace BTNET.BV.Base
             }
         }
 
-        public void AddBulk(IEnumerable<OrderBase> o, TradingMode tradingMode)
+        public void AddBulk(IEnumerable<OrderViewModel> o, TradingMode tradingMode)
         {
             lock (_lock)
             {
-                foreach (OrderBase order in o)
+                foreach (OrderViewModel order in o)
                 {
                     order.OrderTradingMode = tradingMode;
                     BaseOrders.Add(order);
@@ -67,48 +69,83 @@ namespace BTNET.BV.Base
             }
         }
 
-        public OrderBase AddOrder(OrderBase order, bool canUpdateHide)
+        public OrderViewModel AddOrder(OrderViewModel order, bool canUpdateHide)
         {
-            var existingOrder = BaseOrders.Where(t => t.OrderId == order.OrderId).FirstOrDefault();
-            if (existingOrder != null)
+            lock (_lock)
             {
-                existingOrder.Price = order.Price;
-
-                existingOrder.QuantityFilled = order.QuantityFilled;
-                existingOrder.CumulativeQuoteQuantityFilled = order.CumulativeQuoteQuantityFilled;
-                existingOrder.Fulfilled = order.Fulfilled;
-
-                existingOrder.Quantity = order.Quantity;
-                existingOrder.Status = order.Status;
-                existingOrder.Pnl = order.Pnl;
-
-                existingOrder.CreateTime = order.CreateTime;
-                existingOrder.UpdateTime = order.UpdateTime;
-
-                existingOrder.Fee = order.Fee;
-                existingOrder.MinPos = order.MinPos;
-
-                existingOrder.InterestToDate = order.InterestToDate;
-                existingOrder.InterestToDateQuote = order.InterestToDateQuote;
-                existingOrder.InterestPerHour = order.InterestPerHour;
-                existingOrder.InterestPerDay = order.InterestPerDay;
-
-                existingOrder.ResetTime = order.ResetTime;
-                existingOrder.IsMaker = order.IsMaker;
-
-                if (canUpdateHide)
+                var existingOrder = BaseOrders.Where(t => t.OrderId == order.OrderId).FirstOrDefault();
+                if (existingOrder != null)
                 {
-                    existingOrder.IsOrderHidden = order.IsOrderHidden;
+                    existingOrder.Price = order.Price;
+
+                    existingOrder.QuantityFilled = order.QuantityFilled;
+                    existingOrder.CumulativeQuoteQuantityFilled = order.CumulativeQuoteQuantityFilled;
+                    existingOrder.Fulfilled = order.Fulfilled;
+
+                    existingOrder.Quantity = order.Quantity;
+                    existingOrder.Status = order.Status;
+                    existingOrder.Pnl = order.Pnl;
+
+                    existingOrder.CreateTime = order.CreateTime;
+                    existingOrder.UpdateTime = order.UpdateTime;
+
+                    existingOrder.Fee = order.Fee;
+                    existingOrder.MinPos = order.MinPos;
+
+                    existingOrder.InterestToDate = order.InterestToDate;
+                    existingOrder.InterestToDateQuote = order.InterestToDateQuote;
+                    existingOrder.InterestPerHour = order.InterestPerHour;
+                    existingOrder.InterestPerDay = order.InterestPerDay;
+
+                    existingOrder.ResetTime = order.ResetTime;
+                    existingOrder.IsMaker = order.IsMaker;
+
+                    if (canUpdateHide)
+                    {
+                        existingOrder.IsOrderHidden = order.IsOrderHidden;
+                    }
+
+                    return existingOrder;
+                }
+                else
+                {
+                    BaseOrders.Add(order);
                 }
 
-                return existingOrder;
+                return order;
             }
-            else
-            {
-                BaseOrders.Add(order);
-            }
+        }
 
-            return order;
+        public OrderViewModel AddOrderScraper(OrderViewModel order)
+        {
+            lock (_lock)
+            {
+                var existingOrder = BaseOrders.Where(t => t.OrderId == order.OrderId).FirstOrDefault();
+                if (existingOrder != null)
+                {
+                    existingOrder.Price = order.Price;
+                    existingOrder.QuantityFilled = order.QuantityFilled;
+                    existingOrder.CumulativeQuoteQuantityFilled = order.CumulativeQuoteQuantityFilled;
+                    existingOrder.Fulfilled = order.Fulfilled;
+                    existingOrder.Quantity = order.Quantity;
+                    existingOrder.Status = order.Status;
+                    existingOrder.Pnl = order.Pnl;
+                    existingOrder.CreateTime = order.CreateTime;
+                    existingOrder.UpdateTime = order.UpdateTime;
+                    existingOrder.PurchasedByScraper = order.PurchasedByScraper;
+                    existingOrder.ScraperStatus = order.ScraperStatus;
+                    existingOrder.IsOrderHidden = order.IsOrderHidden;
+                    existingOrder.OrderTradingMode = order.OrderTradingMode;
+
+                    return existingOrder;
+                }
+                else
+                {
+                    BaseOrders.Add(order);
+                }
+
+                return order;
+            }
         }
     }
 }

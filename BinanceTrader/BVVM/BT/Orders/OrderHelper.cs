@@ -23,8 +23,8 @@
 */
 
 using BinanceAPI.Enums;
-using BTNET.BV.Base;
 using BTNET.BV.Converters;
+using BTNET.VM.ViewModels;
 using System;
 
 namespace BTNET.BVVM.BT.Orders
@@ -67,7 +67,7 @@ namespace BTNET.BVVM.BT.Orders
             return t;
         }
 
-        public static decimal UpdatePnlPercent(OrderBase order, decimal pnl)
+        public static decimal UpdatePnlPercent(OrderViewModel order, decimal pnl)
         {
             decimal total = ZERO;
             if (order.CumulativeQuoteQuantityFilled != ZERO)
@@ -88,7 +88,7 @@ namespace BTNET.BVVM.BT.Orders
             return currentPnlPercent;
         }
 
-        public static decimal PnL(OrderBase order, decimal askPrice, decimal bidPrice)
+        public static decimal PnL(OrderViewModel order, decimal askPrice, decimal bidPrice)
         {
             if (order.Status == OrderStatus.Canceled)
             {
@@ -126,7 +126,7 @@ namespace BTNET.BVVM.BT.Orders
             }
         }
 
-        public static decimal PnLAsk(OrderBase order, decimal askPrice)
+        public static decimal PnLAsk(OrderViewModel order, decimal askPrice)
         {
             if (askPrice == 0)
             {
@@ -143,7 +143,7 @@ namespace BTNET.BVVM.BT.Orders
             }
         }
 
-        public static decimal PnLBid(OrderBase order, decimal bidPrice)
+        public static decimal PnLBid(OrderViewModel order, decimal bidPrice)
         {
             if (bidPrice == 0)
             {

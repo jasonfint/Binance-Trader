@@ -30,6 +30,7 @@ using BTNET.BV.Base;
 using BTNET.BV.Enum;
 using BTNET.BVVM.Helpers;
 using BTNET.BVVM.Log;
+using BTNET.VM.ViewModels;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -210,7 +211,7 @@ namespace BTNET.BVVM.BT.Orders
         /// <param name="borrow">true if the newly placed order should borrow where available</param>
         /// <param name="tradingMode">Trading mode for the order being processed</param>
         /// <param name="quantitypadding">Additional quantity to be added to the order (default 0)</param>
-        public static void ProcessOrder(OrderBase order, OrderSide orderSide, bool borrow, bool settle = true, decimal quantitypadding = 0)
+        public static void ProcessOrder(OrderViewModel order, OrderSide orderSide, bool borrow, bool settle = true, decimal quantitypadding = 0)
         {
 #if DEBUG
             WriteLog.Info("Symbol: " + order.Symbol + " | Filled: " + order.QuantityFilled + " | OrderPadding: " + quantitypadding + " | Price: " + order.Price + " | Mode: " + order.OrderTradingMode + " | Borrow: " + borrow + " | Side: " + orderSide);

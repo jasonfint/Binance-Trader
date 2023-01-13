@@ -22,19 +22,20 @@
 *SOFTWARE.
 */
 
-using BTNET.BV.Base;
+using BTNET.BVVM;
+using BTNET.VM.ViewModels;
 
 namespace BTNET.BV.Abstract
 {
     public class OrderPair
     {
-        public OrderPair(OrderBase b, OrderBase s)
+        public OrderPair(OrderViewModel b, OrderViewModel s)
         {
             Sell = s;
             Buy = b;
         }
 
-        public OrderBase Sell;
-        public OrderBase Buy;
+        public OrderViewModel Sell;
+        public OrderViewModel Buy;
     }
 }

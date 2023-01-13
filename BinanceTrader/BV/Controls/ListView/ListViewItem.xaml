@@ -37,7 +37,8 @@
                         x:Name="Border"
                         Padding="2"
                         Background="Transparent"
-                        SnapsToDevicePixels="true">
+                        SnapsToDevicePixels="true"
+                        Height="20">
                         <GridViewRowPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">

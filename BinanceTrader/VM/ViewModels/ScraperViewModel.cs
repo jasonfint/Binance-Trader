@@ -46,27 +46,28 @@ namespace BTNET.VM.ViewModels
 {
     public partial class ScraperViewModel : Core
     {
-        public volatile EventHandler<OrderBase>? WatchingLoopStarted;
+        public volatile EventHandler<OrderViewModel>? WatchingLoopStarted;
         public volatile EventHandler<string>? ScraperStopped;
-        public volatile EventHandler<OrderBase>? WaitingLoopStarted;
+        public volatile EventHandler<OrderViewModel>? WaitingLoopStarted;
 
-        public volatile EventHandler<OrderBase>? StartWaitingGuesser;
-        public volatile EventHandler<OrderBase>? StartWatchingGuesser;
+        public volatile EventHandler<OrderViewModel>? StartWaitingGuesser;
+        public volatile EventHandler<OrderViewModel>? StartWatchingGuesser;
 
         public volatile EventHandler<OrderPair>? SellOrderTask;
         public volatile EventHandler<OrderPair>? BuyOrderTask;
 
-        public volatile EventHandler<OrderBase>? FailedFoKOrderTask;
+        public volatile EventHandler<OrderViewModel>? FailedFoKOrderTask;
 
         protected private volatile SemaphoreSlim SlimSell = new SemaphoreSlim(ONE, ONE);
         protected private volatile SemaphoreSlim SlimBuy = new SemaphoreSlim(ONE, ONE);
+        protected private volatile SemaphoreSlim CloseSlim = new SemaphoreSlim(ONE, ONE);
 
         protected private volatile PrecisionTimer WaitingTimer = new PrecisionTimer();
         protected private volatile PrecisionTimer WatchingGuesserTimer = new PrecisionTimer();
         protected private volatile PrecisionTimer WaitingGuesserTimer = new PrecisionTimer();
 
-        protected private volatile OrderBase? WaitingBuy;
-        protected private volatile OrderBase? WaitingSell;
+        protected private volatile OrderViewModel? WaitingBuy;
+        protected private volatile OrderViewModel? WaitingSell;
 
         private SolidColorBrush statusColor = Static.AntiqueWhite;
         private SolidColorBrush runningTotalColor = Static.AntiqueWhite;
@@ -903,7 +904,7 @@ namespace BTNET.VM.ViewModels
             })).ConfigureAwait(false);
         }
 
-        protected private bool Main(OrderBase workingBuy)
+        protected private bool Main(OrderViewModel workingBuy)
         {
             try
             {
@@ -972,7 +973,7 @@ namespace BTNET.VM.ViewModels
             }
         }
 
-        protected private void WatchingLoopStart(object sender, OrderBase startOrder)
+        protected private void WatchingLoopStart(object sender, OrderViewModel startOrder)
         {
             if (!SideTaskStarted)
             {
@@ -1091,7 +1092,7 @@ namespace BTNET.VM.ViewModels
             }, TaskCreationOptions.DenyChildAttach).ConfigureAwait(false);
         }
 
-        protected private void WaitingLoopStart(object o, OrderBase sell)
+        protected private void WaitingLoopStart(object o, OrderViewModel sell)
         {
             UpdateStatus(WAITING, Static.Green);
             StopGuesserWaitingTimer();
@@ -1105,7 +1106,7 @@ namespace BTNET.VM.ViewModels
             IsCloseCurrentEnabled = false;
         }
 
-        protected private void GuesserWatchingMode(object o, OrderBase buyOrder)
+        protected private void GuesserWatchingMode(object o, OrderViewModel buyOrder)
         {
             UpdateStatus(GUESS_SELL, Static.Gold);
             ScraperCounter.ChangeSide(OrderSide.Sell);
@@ -1114,7 +1115,7 @@ namespace BTNET.VM.ViewModels
             NewWatchingGuesser(buyOrder);
         }
 
-        protected private void GuesserWaitingMode(object o, OrderBase sellOrder)
+        protected private void GuesserWaitingMode(object o, OrderViewModel sellOrder)
         {
             UpdateStatus(GUESS_BUY, Static.Gold);
             ScraperCounter.ChangeSide(OrderSide.Buy);
@@ -1123,18 +1124,19 @@ namespace BTNET.VM.ViewModels
             NewWaitingGuesser(sellOrder);
         }
 
-        private void NewWatchingGuesser(OrderBase buy)
+        private void NewWatchingGuesser(OrderViewModel buy)
         {
             WaitingBuy = buy;
             WatchingGuesserBlocked = false;
             WatchingGuesserTimer.Start();
         }
 
-        private void NewWaitingGuesser(OrderBase sell)
+        private void NewWaitingGuesser(OrderViewModel sell)
         {
             WaitingSell = sell;
             WaitingGuesserBlocked = false;
             WaitingGuesserTimer.Start();
+            IsSwitchEnabled = false;
         }
 
         protected private void StopGuesserWatchingTimer()
@@ -1151,7 +1153,7 @@ namespace BTNET.VM.ViewModels
             ScraperCounter.ResetGuesserStopwatch();
         }
 
-        protected private void SettleWaitingGuesser(OrderBase sellOrder)
+        protected private void SettleWaitingGuesser(OrderViewModel sellOrder)
         {
             WaitingGuesserBlocked = true;
             if (UpdateReversePnLPercent(sellOrder, decimal.Round(OrderHelper.PnLAsk(sellOrder, RealTimeVM.AskPrice), App.DEFAULT_ROUNDING_PLACES), ReverseDownPercent) >= ReverseDownPercent)
@@ -1167,7 +1169,7 @@ namespace BTNET.VM.ViewModels
             }
         }
 
-        protected private void SettleWatchingGuesser(OrderBase buyOrder)
+        protected private void SettleWatchingGuesser(OrderViewModel buyOrder)
         {
             WatchingGuesserBlocked = true;
             if (UpdatePnlPercent(buyOrder, decimal.Round(OrderHelper.PnLBid(buyOrder, RealTimeVM.BidPrice), App.DEFAULT_ROUNDING_PLACES)) >= SellPercent)
@@ -1213,7 +1215,7 @@ namespace BTNET.VM.ViewModels
             return false;
         }
 
-        protected private decimal UpdateCurrentPnlPercent(OrderBase workingBuy)
+        protected private decimal UpdateCurrentPnlPercent(OrderViewModel workingBuy)
         {
             decimal d = UpdateCurrentPnlPercentInternal(workingBuy, out decimal pnl);
             CurrentPnlPercent = d;
@@ -1221,14 +1223,14 @@ namespace BTNET.VM.ViewModels
             return d;
         }
 
-        protected private bool CalculateReverse(OrderBase sell)
+        protected private bool CalculateReverse(OrderViewModel sell)
         {
             bool b = CalculateReverseInternal(sell, ReverseDownPercent, out decimal currentReverseOut);
             CurrentReversePercent = currentReverseOut;
             return b;
         }
 
-        public bool SellSwitch(OrderBase oldBuyOrder, decimal price)
+        public bool SellSwitch(OrderViewModel oldBuyOrder, decimal price)
         {
             bool canEnter = SlimSell.Wait(ZERO);
             if (canEnter)
@@ -1254,7 +1256,7 @@ namespace BTNET.VM.ViewModels
             return true;
         }
 
-        public bool SellSwitchClose(OrderBase oldBuyOrder, decimal price)
+        public bool SellSwitchClose(OrderViewModel oldBuyOrder, decimal price)
         {
             bool canEnter = SlimSell.Wait(ZERO);
             if (canEnter)
@@ -1280,19 +1282,19 @@ namespace BTNET.VM.ViewModels
             return true;
         }
 
-        protected private bool ProcessNextSellOrderLimit(OrderBase oldBuyOrder, decimal price)
+        protected private bool ProcessNextSellOrderLimit(OrderViewModel oldBuyOrder, decimal price)
         {
             UpdateStatus(PROCESSING, Static.Green);
             WebCallResult<BinancePlacedOrder> sellResult = Trade.PlaceOrderLimitFoKAsync(Symbol, Quantity, Mode, false, OrderSide.Sell, price).Result;
             if (sellResult.Success)
             {
-                OrderBase newSellOrder = Order.NewScraperOrder(sellResult.Data, Mode);
+                OrderViewModel newSellOrder = OrderBase.NewScraperOrder(sellResult.Data, Mode);
                 if (sellResult.Data.Status == OrderStatus.Filled)
                 {
                     Static.ManageStoredOrders.ScraperOrderContextFromMemoryStorage(newSellOrder);
                     SellOrderTask?.Invoke(null, new OrderPair(oldBuyOrder, newSellOrder));
 
-                    OrderBase? nextSwitchBuy = NextSwitchOrder();
+                    OrderViewModel? nextSwitchBuy = NextSwitchOrder();
                     if (SwitchAutoIsChecked && nextSwitchBuy != null)
                     {
                         if (SwitchToNext(newSellOrder, nextSwitchBuy))
@@ -1315,17 +1317,17 @@ namespace BTNET.VM.ViewModels
             return true;
         }
 
-        protected private bool ProcessNextSellOrderMarket(OrderBase oldBuyOrder)
+        protected private bool ProcessNextSellOrderMarket(OrderViewModel oldBuyOrder)
         {
             UpdateStatus(PROCESSING, Static.Green);
             WebCallResult<BinancePlacedOrder> sellResult = Trade.PlaceOrderMarketAsync(Symbol, Quantity, Mode, false, OrderSide.Sell).Result;
             if (sellResult.Success)
             {
-                OrderBase newSellOrder = Order.NewScraperOrder(sellResult.Data, Mode);
+                OrderViewModel newSellOrder = OrderBase.NewScraperOrder(sellResult.Data, Mode);
                 Static.ManageStoredOrders.ScraperOrderContextFromMemoryStorage(newSellOrder);
                 SellOrderTask?.Invoke(null, new OrderPair(oldBuyOrder, newSellOrder));
 
-                OrderBase? nextSwitchBuy = NextSwitchOrder();
+                OrderViewModel? nextSwitchBuy = NextSwitchOrder();
                 if (SwitchAutoIsChecked && nextSwitchBuy != null)
                 {
                     if (SwitchToNext(newSellOrder, nextSwitchBuy))
@@ -1343,7 +1345,7 @@ namespace BTNET.VM.ViewModels
             return true;
         }
 
-        private OrderBase? NextSwitchOrder()
+        private OrderViewModel? NextSwitchOrder()
         {
             if (SwitchAutoIsChecked)
             {
@@ -1359,7 +1361,7 @@ namespace BTNET.VM.ViewModels
             return null;
         }
 
-        public bool BuySwitchAdd(OrderBase oldOrder, string buyReason, bool watchingModeOnFail, decimal price)
+        public bool BuySwitchAdd(OrderViewModel oldOrder, string buyReason, bool watchingModeOnFail, decimal price)
         {
             bool canEnter = SlimBuy.Wait(ZERO);
             if (canEnter)
@@ -1385,7 +1387,7 @@ namespace BTNET.VM.ViewModels
             return true;
         }
 
-        public bool BuySwitchPrice(OrderBase oldOrder, string buyReason, bool watchingModeOnFail, decimal price)
+        public bool BuySwitchPrice(OrderViewModel oldOrder, string buyReason, bool watchingModeOnFail, decimal price)
         {
             bool canEnter = SlimBuy.Wait(ZERO);
             if (canEnter)
@@ -1411,7 +1413,7 @@ namespace BTNET.VM.ViewModels
             return true;
         }
 
-        public bool BuySwitchAskPrice(OrderBase oldOrder, string buyReason, bool watchingModeOnFail)
+        public bool BuySwitchAskPrice(OrderViewModel oldOrder, string buyReason, bool watchingModeOnFail)
         {
             bool canEnter = SlimBuy.Wait(ZERO);
             if (canEnter)
@@ -1437,7 +1439,7 @@ namespace BTNET.VM.ViewModels
             return true;
         }
 
-        protected private bool ProcesNextBuyOrderAskPriceLimit(OrderBase oldOrder, string buyReason, bool watchingModeOnFail)
+        protected private bool ProcesNextBuyOrderAskPriceLimit(OrderViewModel oldOrder, string buyReason, bool watchingModeOnFail)
         {
             if (!ProcessNextBuyOrderInternalLimit(buyReason, oldOrder, RealTimeVM.AskPrice, watchingModeOnFail))
             {
@@ -1447,7 +1449,7 @@ namespace BTNET.VM.ViewModels
             return true;
         }
 
-        protected private bool ProcessNextBuyOrderPriceLimit(OrderBase oldOrder, string buyReason, bool watchingModeOnFail, decimal price)
+        protected private bool ProcessNextBuyOrderPriceLimit(OrderViewModel oldOrder, string buyReason, bool watchingModeOnFail, decimal price)
         {
             if (!ProcessNextBuyOrderInternalLimit(buyReason, oldOrder, price, watchingModeOnFail))
             {
@@ -1457,7 +1459,7 @@ namespace BTNET.VM.ViewModels
             return true;
         }
 
-        protected private bool ProcessNextBuyOrderPriceMarket(OrderBase oldOrder, string buyReason, bool watchingModeOnFail)
+        protected private bool ProcessNextBuyOrderPriceMarket(OrderViewModel oldOrder, string buyReason, bool watchingModeOnFail)
         {
             if (!ProcessNextBuyOrderInternalMarket(buyReason, oldOrder, watchingModeOnFail))
             {
@@ -1467,7 +1469,7 @@ namespace BTNET.VM.ViewModels
             return true;
         }
 
-        protected private bool ProcessNextBuyOrderInternalLimit(string buyReason, OrderBase oldOrder, decimal price, bool watchingModeOnFail = false)
+        protected private bool ProcessNextBuyOrderInternalLimit(string buyReason, OrderViewModel oldOrder, decimal price, bool watchingModeOnFail = false)
         {
             IsAddEnabled = false;
 
@@ -1475,7 +1477,7 @@ namespace BTNET.VM.ViewModels
 
             if (buyResult.Success)
             {
-                OrderBase newBuyOrder = Order.NewScraperOrder(buyResult.Data, Mode);
+                OrderViewModel newBuyOrder = OrderBase.NewScraperOrder(buyResult.Data, Mode);
                 Static.ManageStoredOrders.ScraperOrderContextFromMemoryStorage(newBuyOrder);
                 if (buyResult.Data.Status == OrderStatus.Filled)
                 {
@@ -1503,7 +1505,7 @@ namespace BTNET.VM.ViewModels
             return false;
         }
 
-        protected private bool ProcessNextBuyOrderInternalMarket(string buyReason, OrderBase oldOrder, bool watchingModeOnFail = false)
+        protected private bool ProcessNextBuyOrderInternalMarket(string buyReason, OrderViewModel oldOrder, bool watchingModeOnFail = false)
         {
             IsAddEnabled = false;
 
@@ -1511,7 +1513,7 @@ namespace BTNET.VM.ViewModels
 
             if (buyResult.Success)
             {
-                OrderBase newBuyOrder = Order.NewScraperOrder(buyResult.Data, Mode);
+                OrderViewModel newBuyOrder = OrderBase.NewScraperOrder(buyResult.Data, Mode);
                 Static.ManageStoredOrders.ScraperOrderContextFromMemoryStorage(newBuyOrder);
                 BuyOrderTask?.Invoke(buyReason, new OrderPair(newBuyOrder, oldOrder));
                 WatchingLoopStarted?.Invoke(true, Static.ManageStoredOrders.ScraperOrderContextFromMemoryStorage(newBuyOrder)); // -> Success Watching Mode
@@ -1545,7 +1547,7 @@ namespace BTNET.VM.ViewModels
             }
         }
 
-        protected private void ResetPriceQuantity(OrderBase order, bool buy)
+        protected private void ResetPriceQuantity(OrderViewModel order, bool buy)
         {
             if (buy)
             {
@@ -1905,7 +1907,7 @@ namespace BTNET.VM.ViewModels
             }
         }
 
-        public void FailedFokOrderEvent(object o, OrderBase sellOrder)
+        public void FailedFokOrderEvent(object o, OrderViewModel sellOrder)
         {
             sellOrder.IsOrderHidden = true;
             Static.ManageStoredOrders.ScraperOrderContextFromMemoryStorage(sellOrder);
@@ -1932,57 +1934,61 @@ namespace BTNET.VM.ViewModels
 
         public void CloseCurrent(object o)
         {
+            IsCloseCurrentEnabled = false;
+            IsAddEnabled = false;
+
             _ = Task.Run(() =>
             {
-                InvokeUI.CheckAccess(() =>
+                if (CloseSlim.Wait(0))
                 {
-                    IsAddEnabled = false;
-                    IsCloseCurrentEnabled = false;
-                });
+                    HardBlock();
 
-                HardBlock();
-
-                if (Orders.Current.Count > ZERO)
-                {
-                    OrderBase buyOrder = Orders.Current[ZERO];
-                    if (buyOrder.Side == OrderSide.Buy && buyOrder.ScraperStatus)
+                    if (Orders.Current.Count > ZERO)
                     {
-                        var bid = RealTimeVM.BidPrice - QuoteVM.PriceTickSize;
-                        var pnl = decimal.Round(OrderHelper.PnLBid(buyOrder, bid), App.DEFAULT_ROUNDING_PLACES);
-
-                        if (UpdatePnlPercent(buyOrder, pnl) > 0.0002m)
+                        OrderViewModel buyOrder = Orders.Current[ZERO];
+                        if (buyOrder.Side == OrderSide.Buy && buyOrder.ScraperStatus)
                         {
-                            SellSwitchClose(buyOrder, bid); // -> Success Waiting Mode // <- Failed Watching Mode
-                            return;
+                            var bid = RealTimeVM.BidPrice - QuoteVM.PriceTickSize;
+                            var pnl = decimal.Round(OrderHelper.PnLBid(buyOrder, bid), App.DEFAULT_ROUNDING_PLACES);
+
+                            if (UpdatePnlPercent(buyOrder, pnl) > 0.0002m)
+                            {
+                                SellSwitchClose(buyOrder, bid); // -> Success Waiting Mode // <- Failed Watching Mode
+                                CloseSlim.Release();
+                                return;
+                            }
+                            else
+                            {
+                                WatchingLoopStarted?.Invoke(true, buyOrder); // -> Failed Watching Mode               
+                                AddMessage("Refused Unprofitable Trade");
+                                CloseSlim.Release();
+                                return;
+                            }
                         }
                         else
                         {
-                            WatchingLoopStarted?.Invoke(true, buyOrder); // -> Failed Watching Mode               
-                            AddMessage("Refused Unprofitable Trade");
+                            NotifyVM.Notification(ORDER_MISMATCH);
 
                             InvokeUI.CheckAccess(() =>
                             {
                                 IsAddEnabled = true;
                                 IsCloseCurrentEnabled = true;
                             });
+
+                            CloseSlim.Release();
+                            return; // -> Ignore
                         }
                     }
                     else
                     {
-                        NotifyVM.Notification(ORDER_MISMATCH);
-
-                        InvokeUI.CheckAccess(() =>
-                        {
-                            IsAddEnabled = true;
-                            IsCloseCurrentEnabled = true;
-                        });
-                        return; // -> Ignore
+                        ScraperStopped?.Invoke(null, NO_ORDER_ERROR); // -> Error Stop
+                        CloseSlim.Release();
+                        return;
                     }
                 }
                 else
                 {
-                    ScraperStopped?.Invoke(null, NO_ORDER_ERROR); // -> Error Stop
-                    return;
+                    AddMessage("Busy Closing");
                 }
             }).ConfigureAwait(false);
         }
@@ -1991,8 +1997,8 @@ namespace BTNET.VM.ViewModels
         {
             _ = Task.Run(() =>
             {
-                OrderBase? orderOne = null;
-                OrderBase? orderTwo = null;
+                OrderViewModel? orderOne = null;
+                OrderViewModel? orderTwo = null;
 
                 lock (MainOrders.OrderUpdateLock)
                 {
@@ -2015,7 +2021,7 @@ namespace BTNET.VM.ViewModels
             }).ConfigureAwait(false);
         }
 
-        protected private bool SwitchToNext(OrderBase one, OrderBase two)
+        protected private bool SwitchToNext(OrderViewModel one, OrderViewModel two)
         {
             var sell = one.Side == OrderSide.Sell ? one : two;
             var buy = two.Side == OrderSide.Buy ? two : one;
@@ -2051,15 +2057,14 @@ namespace BTNET.VM.ViewModels
 
         public void UserAdd(object o)
         {
+            IsAddEnabled = false;
             decimal price = RealTimeVM.AskPrice;
 
             _ = Task.Run(() =>
             {
                 try
                 {
-                    IsAddEnabled = false;
-
-                    OrderBase? order = null;
+                    OrderViewModel? order = null;
                     lock (MainOrders.OrderUpdateLock)
                     {
                         InvokeUI.CheckAccess(() =>
@@ -2107,11 +2112,13 @@ namespace BTNET.VM.ViewModels
 
         public void Start(object o)
         {
+            IsStartEnabled = false;
+
             _ = Task.Run(() =>
             {
                 try
                 {
-                    OrderBase? anyOrder = null;
+                    OrderViewModel? anyOrder = null;
                     lock (MainOrders.OrderUpdateLock)
                     {
                         if (Orders.Current.Count > ZERO)
@@ -2151,7 +2158,7 @@ namespace BTNET.VM.ViewModels
                 SideTaskStarted = false;
                 Reset();
 
-                OrderBase? order = null;
+                OrderViewModel? order = null;
                 lock (MainOrders.OrderUpdateLock)
                 {
                     InvokeUI.CheckAccess(() =>
@@ -2161,7 +2168,7 @@ namespace BTNET.VM.ViewModels
                             order = Orders.Current[ZERO];
                         }
 
-                        foreach (OrderBase o in Orders.Current)
+                        foreach (OrderViewModel o in Orders.Current)
                         {
                             o.ScraperStatus = false;
                         }
@@ -2205,13 +2212,15 @@ namespace BTNET.VM.ViewModels
 
         public void Stop(object o)
         {
+            IsStopEnabled = false;
+
             _ = Task.Run(() =>
             {
                 ScraperStopped?.Invoke(null, STOPPED_REQUEST);
             }).ConfigureAwait(false);
         }
 
-        public bool NotLimitOrFilled(OrderBase o)
+        public bool NotLimitOrFilled(OrderViewModel o)
         {
             if (o.Type != OrderType.Limit)
             {
