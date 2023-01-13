@@ -1,3 +1,6 @@
+### Version 2.7.1.3
+- [x] Fix a bug that froze the `UI` when you manually `Hide` an `Order`
+
 ### Version 2.7.1.2
 - [x] Hide all `Order Tasks` for the active order in the `Scraper`
 
