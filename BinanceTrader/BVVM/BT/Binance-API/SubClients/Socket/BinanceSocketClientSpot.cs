@@ -69,8 +69,7 @@ namespace BinanceAPI.SocketSubClients
 
         private readonly SocketClientHost _baseClient;
 
-
-        internal BinanceSocketClientSpot(SocketClientHost baseClient, SocketClientHostOptions options)
+        internal BinanceSocketClientSpot(SocketClientHost baseClient)
         {
             _baseClient = baseClient;
         }

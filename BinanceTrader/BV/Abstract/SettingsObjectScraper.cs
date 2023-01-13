@@ -26,10 +26,34 @@ namespace BTNET.BV.Abstract
 {
     public class SettingsObjectScraper
     {
+        private decimal resetUpS = 1250;
+        private decimal resetDownS = 1250;
+        private decimal divPercent = 30;
+        private decimal resetUpL = 2500;
+        private decimal resetDownL = 2500;
+        private decimal resetTime = 15;
+        private decimal timeBias = 5;
+        private decimal upBias = 1.7m;
+        private decimal downBias = 1.7m;
+        private decimal deadTime = 100;
+        private decimal reverseBias = -500;
+        private decimal sellPercent = 0.14m;
+        private decimal downPercent = 0.042m;
+        private decimal priceBias = 200;
+        private decimal waitTime = 200;
+        private int waitCount = 7;
+        private int useLimitClose = 2;
+        private int useLimitAdd = 2;
+        private int useLimitSell = 2;
+        private int useLimitBuy = 2;
+
+        public SettingsObjectScraper() { }
+
         public SettingsObjectScraper(decimal sellPercent, decimal downPercent, decimal priceBias, int waitCount, decimal waitTime,
             decimal resetupS, decimal resetdownS, decimal divPercent,
             decimal resetUpL, decimal resetDownL, decimal resetTime,
-            decimal timeBias, decimal upBias, decimal downBias, decimal deadTime)
+            decimal timeBias, decimal upBias, decimal downBias, decimal deadTime,
+            int useLimitBuy, int useLimitSell, int useLimitAdd, int useLimitClose, decimal reverseBias)
         {
             SellPercent = sellPercent;
             DownPercent = downPercent;
@@ -49,24 +73,224 @@ namespace BTNET.BV.Abstract
             UpBias = upBias;
             DownBias = downBias;
             DeadTime = deadTime;
+
+            UseLimitBuy = useLimitBuy;
+            UseLimitSell = useLimitSell;
+            UseLimitAdd = useLimitAdd;
+            UseLimitClose = useLimitClose;
+
+            ReverseBias = reverseBias;
         }
 
-        public decimal? ResetUpS { get; set; }
-        public decimal? ResetDownS { get; set; }
-        public decimal? DivPercent { get; set; }
-        public decimal? ResetUpL { get; set; }
-        public decimal? ResetDownL { get; set; }
-        public decimal? ResetTime { get; set; }
-        public decimal? TimeBias { get; set; }
-        public decimal? UpBias { get; set; }
-        public decimal? DownBias { get; set; }
-        public decimal? DeadTime { get; set; }
+        public int UseLimitBuy
+        {
+            get => useLimitBuy; set
+            {
+                if (value != 0)
+                {
+                    useLimitBuy = value;
+                }
+            }
+        }
 
+        public int UseLimitSell
+        {
+            get => useLimitSell; set
+            {
+                if (value != 0)
+                {
+                    useLimitSell = value;
+                }
+            }
+        }
 
-        public decimal? SellPercent { get; set; }
-        public decimal? DownPercent { get; set; }
-        public decimal? PriceBias { get; set; }
-        public decimal? WaitTime { get; set; }
-        public int? WaitCount { get; set; }
+        public int UseLimitAdd
+        {
+            get => useLimitAdd; set
+            {
+                if (value != 0)
+                {
+                    useLimitAdd = value;
+                }
+            }
+        }
+
+        public int UseLimitClose
+        {
+            get => useLimitClose; set
+            {
+                if (value != 0)
+                {
+                    useLimitClose = value;
+                }
+            }
+        }
+
+        public decimal ResetUpS
+        {
+            get => resetUpS; set
+            {
+                if (value != 0)
+                {
+                    resetUpS = value;
+                }
+            }
+        }
+
+        public decimal ResetDownS
+        {
+            get => resetDownS; set
+            {
+                if (value != 0)
+                {
+                    resetDownS = value;
+                }
+            }
+        }
+
+        public decimal DivPercent
+        {
+            get => divPercent; set
+            {
+                if (value != 0)
+                {
+                    divPercent = value;
+                }
+            }
+        }
+        public decimal ResetUpL
+        {
+            get => resetUpL; set
+            {
+                if (value != 0)
+                {
+                    resetUpL = value;
+                }
+            }
+        }
+        public decimal ResetDownL
+        {
+            get => resetDownL; set
+            {
+                if (value != 0)
+                {
+                    resetDownL = value;
+                }
+            }
+        }
+        public decimal ResetTime
+        {
+            get => resetTime; set
+            {
+                if (value != 0)
+                {
+                    resetTime = value;
+                }
+            }
+        }
+        public decimal TimeBias
+        {
+            get => timeBias; set
+            {
+                if (value != 0)
+                {
+                    timeBias = value;
+                }
+            }
+        }
+        public decimal UpBias
+        {
+            get => upBias; set
+            {
+                if (value != 0)
+                {
+                    upBias = value;
+                }
+            }
+        }
+        public decimal DownBias
+        {
+            get => downBias; set
+            {
+                if (value != 0)
+                {
+                    downBias = value;
+                }
+            }
+        }
+        public decimal DeadTime
+        {
+            get => deadTime; set
+            {
+                if (value != 0)
+                {
+                    deadTime = value;
+                }
+            }
+        }
+        public decimal ReverseBias
+        {
+            get => reverseBias; set
+            {
+                if (value != 0)
+                {
+                    reverseBias = value;
+                }
+            }
+        }
+        public decimal SellPercent
+        {
+            get => sellPercent; set
+            {
+                if (value != 0)
+                {
+                    sellPercent = value;
+                }
+            }
+        }
+        public decimal DownPercent
+        {
+            get => downPercent; set
+            {
+                if (value != 0)
+                {
+                    downPercent = value;
+                }
+            }
+        }
+        public decimal PriceBias
+        {
+            get => priceBias; set
+            {
+                if (value != 0)
+                {
+                    priceBias = value;
+                }
+            }
+        }
+
+        public decimal WaitTime
+        {
+            get => waitTime; set
+            {
+                if (value != 0)
+                {
+                    waitTime = value;
+                }
+            }
+        }
+
+        public int WaitCount
+        {
+            get => waitCount;
+            set
+            {
+                if (value != 0)
+                {
+                    waitCount = value;
+                }
+            }
+        }
+
     }
 }

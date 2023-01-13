@@ -23,7 +23,6 @@
 */
 
 using BTNET.BV.Enum;
-using BTNET.VM.ViewModels;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -62,11 +61,7 @@ namespace BTNET.BV.Base
             {
                 foreach (OrderBase order in o)
                 {
-                    if (order.Helper == null)
-                    {
-                        order.Helper = new OrderHelperViewModel(order.Side, tradingMode, order.Symbol);
-                    }
-
+                    order.OrderTradingMode = tradingMode;
                     BaseOrders.Add(order);
                 }
             }
@@ -99,10 +94,7 @@ namespace BTNET.BV.Base
                 existingOrder.InterestPerDay = order.InterestPerDay;
 
                 existingOrder.ResetTime = order.ResetTime;
-                existingOrder.CanCancel = order.CanCancel;
-
                 existingOrder.IsMaker = order.IsMaker;
-                existingOrder.Cancelled = order.Cancelled;
 
                 if (canUpdateHide)
                 {

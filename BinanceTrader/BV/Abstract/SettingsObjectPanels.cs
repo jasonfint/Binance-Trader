@@ -26,16 +26,34 @@ namespace BTNET.BV.Abstract
 {
     public class SettingsObjectPanels
     {
+        private double orderListHeight = 80;
+        private double panelMarginInfoTop = -170;
+        private double panelMarginInfoLeft = 113;
+        private double panelBorrowBoxTop = -170;
+        private double panelBorrowBoxLeft = 10;
+        private double panelRealTimeTop = -400;
+        private double panelRealTimeLeft = 1055;
+        private double panelInfoBoxTop = -385;
+        private double panelInfoBoxLeft = 10;
+        private double panelBreakdownTop = -279;
+        private double panelBreakdownLeft = 10;
+        private double panelTradeInfoTop = -578;
+        private double panelTradeInfoleft = 10;
+        private double panelScraperTop = -805;
+        private double panelScraperLeft = 10;
+        private double panelInsightsTop = -577;
+        private double panelInsightsLeft = 566;
+
         public SettingsObjectPanels(
-            double panelBreakdownLeft, double panelBreakdownTop,
-            double panelInfoBoxLeft, double panelInfoBoxTop,
-            double panelRealTimeLeft, double panelRealTimeTop,
-            double panelBorrowBoxLeft, double panelBorrowBoxTop,
-            double panelMarginInfoLeft, double panelMarginInfoTop,
-            double orderListHeight,
-            double panelTradeInfoLeft, double panelTradeInfoTop,
-            double panelScraperLeft, double panelScraperTop,
-            double panelInsightsLeft, double panelInsightsTop)
+                    double panelBreakdownLeft, double panelBreakdownTop,
+                    double panelInfoBoxLeft, double panelInfoBoxTop,
+                    double panelRealTimeLeft, double panelRealTimeTop,
+                    double panelBorrowBoxLeft, double panelBorrowBoxTop,
+                    double panelMarginInfoLeft, double panelMarginInfoTop,
+                    double orderListHeight,
+                    double panelTradeInfoLeft, double panelTradeInfoTop,
+                    double panelScraperLeft, double panelScraperTop,
+                    double panelInsightsLeft, double panelInsightsTop)
         {
             PanelBreakdownLeft = panelBreakdownLeft;
             PanelBreakdownTop = panelBreakdownTop;
@@ -64,30 +82,208 @@ namespace BTNET.BV.Abstract
             PanelInsightsTop = panelInsightsTop;
         }
 
-        public double? PanelInsightsLeft { get; set; }
-        public double? PanelInsightsTop { get; set; }
+        public double PanelInsightsLeft
+        {
+            get => panelInsightsLeft;
+            set
+            {
+                if (value != 0)
+                {
+                    panelInsightsLeft = value;
+                }
+            }
+        }
 
-        public double? PanelScraperLeft { get; set; }
-        public double? PanelScraperTop { get; set; }
+        public double PanelInsightsTop
+        {
+            get => panelInsightsTop;
+            set
+            {
+                if (value != 0)
+                {
+                    panelInsightsTop = value;
+                }
+            }
+        }
 
-        public double? PanelTradeInfoleft { get; set; }
-        public double? PanelTradeInfoTop { get; set; }
+        public double PanelScraperLeft
+        {
+            get => panelScraperLeft;
+            set
+            {
+                if (value != 0)
+                {
+                    panelScraperLeft = value;
+                }
+            }
+        }
 
-        public double? PanelBreakdownLeft { get; set; }
-        public double? PanelBreakdownTop { get; set; }
+        public double PanelScraperTop
+        {
+            get => panelScraperTop;
+            set
+            {
+                if (value != 0)
+                {
+                    panelScraperTop = value;
+                }
+            }
+        }
 
-        public double? PanelInfoBoxLeft { get; set; }
-        public double? PanelInfoBoxTop { get; set; }
+        public double PanelTradeInfoleft
+        {
+            get => panelTradeInfoleft;
+            set
+            {
+                if (value != 0)
+                {
+                    panelTradeInfoleft = value;
+                }
+            }
+        }
 
-        public double? PanelRealTimeLeft { get; set; }
-        public double? PanelRealTimeTop { get; set; }
+        public double PanelTradeInfoTop
+        {
+            get => panelTradeInfoTop;
+            set
+            {
+                if (value != 0)
+                {
+                    panelTradeInfoTop = value;
+                }
+            }
+        }
 
-        public double? PanelBorrowBoxLeft { get; set; }
-        public double? PanelBorrowBoxTop { get; set; }
+        public double PanelBreakdownLeft
+        {
+            get => panelBreakdownLeft;
+            set
+            {
+                if (value != 0)
+                {
+                    panelBreakdownLeft = value;
+                }
+            }
+        }
 
-        public double? PanelMarginInfoLeft { get; set; }
-        public double? PanelMarginInfoTop { get; set; }
+        public double PanelBreakdownTop
+        {
+            get => panelBreakdownTop;
+            set
+            {
+                if (value != 0)
+                {
+                    panelBreakdownTop = value;
+                }
+            }
+        }
 
-        public double? OrderListHeight { get; set; }
+        public double PanelInfoBoxLeft
+        {
+            get => panelInfoBoxLeft;
+            set
+            {
+                if (value != 0)
+                {
+                    panelInfoBoxLeft = value;
+                }
+            }
+        }
+
+        public double PanelInfoBoxTop
+        {
+            get => panelInfoBoxTop;
+            set
+            {
+                if (value != 0)
+                {
+                    panelInfoBoxTop = value;
+                }
+            }
+        }
+
+        public double PanelRealTimeLeft
+        {
+            get => panelRealTimeLeft;
+            set
+            {
+                if (value != 0)
+                {
+                    panelRealTimeLeft = value;
+                }
+            }
+        }
+
+        public double PanelRealTimeTop
+        {
+            get => panelRealTimeTop;
+            set
+            {
+                if (value != 0)
+                {
+                    panelRealTimeTop = value;
+                }
+            }
+        }
+
+        public double PanelBorrowBoxLeft
+        {
+            get => panelBorrowBoxLeft;
+            set
+            {
+                if (value != 0)
+                {
+                    panelBorrowBoxLeft = value;
+                }
+            }
+        }
+
+        public double PanelBorrowBoxTop
+        {
+            get => panelBorrowBoxTop;
+            set
+            {
+                if (value != 0)
+                {
+                    panelBorrowBoxTop = value;
+                }
+            }
+        }
+
+        public double PanelMarginInfoLeft
+        {
+            get => panelMarginInfoLeft;
+            set
+            {
+                if (value != 0)
+                {
+                    panelMarginInfoLeft = value;
+                }
+            }
+        }
+
+        public double PanelMarginInfoTop
+        {
+            get => panelMarginInfoTop;
+            set
+            {
+                if (value != 0)
+                {
+                    panelMarginInfoTop = value;
+                }
+            }
+        }
+
+        public double OrderListHeight
+        {
+            get => orderListHeight;
+            set
+            {
+                if (value != 0)
+                {
+                    orderListHeight = value;
+                }
+            }
+        }
     }
 }

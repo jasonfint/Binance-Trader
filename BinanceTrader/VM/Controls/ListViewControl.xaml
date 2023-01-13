@@ -50,8 +50,9 @@
         ItemsSource="{Binding Orders.Current}"
         ScrollViewer.HorizontalScrollBarVisibility="Hidden"
         ScrollViewer.VerticalScrollBarVisibility="Hidden"
-        SelectedItem="{Binding SelectedListItem}"
-        HorizontalAlignment="Center">
+        SelectedItem="{Binding SelectedListItem}" 
+        HorizontalAlignment="Center"
+        HorizontalContentAlignment="Center">
         <ListView.Resources>
             <ItemsPanelTemplate x:Key="x">
                 <VirtualizingStackPanel />
@@ -109,6 +110,10 @@
                     Width="105"
                     DisplayMemberBinding="{Binding Pnl, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource tickScale}}"
                     Header="Run PnL" />
+                <GridViewColumn
+                    Width="105"
+                    DisplayMemberBinding="{Binding PnlPercent, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource tickScale}}"
+                    Header="PnL Percent" />
                 <GridViewColumn Width="180" Header="Tasks">
                     <GridViewColumn.CellTemplate>
                         <DataTemplate>

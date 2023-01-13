@@ -44,7 +44,7 @@ namespace BTNET.BVVM.BT
 
         public void NewSymbol(OrderBase order)
         {
-            StoredOrdersSymbol newSymbol = new StoredOrdersSymbol(order.Symbol, order.Helper!.OrderTradingMode);
+            StoredOrdersSymbol newSymbol = new StoredOrdersSymbol(order.Symbol, order.OrderTradingMode);
             newSymbol.BaseOrders.Add(order);
             AllSymbolOrders.Add(newSymbol);
         }
@@ -116,6 +116,7 @@ namespace BTNET.BVVM.BT
                         existingOrder.PurchasedByScraper = order.PurchasedByScraper;
                         existingOrder.ScraperStatus = order.ScraperStatus;
                         existingOrder.IsOrderHidden = order.IsOrderHidden;
+                        existingOrder.OrderTradingMode = order.OrderTradingMode;
 
                         return existingOrder;
                     }
@@ -140,7 +141,7 @@ namespace BTNET.BVVM.BT
 
         public OrderBase AddSingleOrderToMemoryStorage(OrderBase order, bool canUpdateHide)
         {
-            StoredOrdersSymbol temp = GetSymbol(order.Symbol, order.Helper!.OrderTradingMode);
+            StoredOrdersSymbol temp = GetSymbol(order.Symbol, order.OrderTradingMode);
 
             if (temp != null)
             {

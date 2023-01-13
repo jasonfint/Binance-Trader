@@ -29,7 +29,6 @@ using BinanceAPI.Objects.Spot.UserStream;
 using BinanceAPI.Objects.Spot.WalletData;
 using BTNET.BV.Base;
 using BTNET.BV.Enum;
-using BTNET.VM.ViewModels;
 
 namespace BTNET.BVVM.BT.Orders
 {
@@ -71,7 +70,7 @@ namespace BTNET.BVVM.BT.Orders
                 MinPos = orderFee * App.MIN_PNL_FEE_MULTIPLIER,
                 TimeInForce = OrderHelper.TIF(o.TimeInForce.ToString()),
                 Fulfilled = OrderHelper.Fulfilled(o.Quantity, o.QuantityFilled),
-                Helper = new OrderHelperViewModel(o.Side, tradingMode, o.Symbol)
+                OrderTradingMode = tradingMode,
             };
         }
 
@@ -110,7 +109,7 @@ namespace BTNET.BVVM.BT.Orders
                 MinPos = orderFee * App.MIN_PNL_FEE_MULTIPLIER,
                 TimeInForce = OrderHelper.TIF(o.TimeInForce.ToString()),
                 Fulfilled = OrderHelper.Fulfilled(o.Quantity, o.QuantityFilled),
-                Helper = new OrderHelperViewModel(o.Side, tradingMode, o.Symbol)
+                OrderTradingMode = tradingMode,
             };
         }
 
@@ -138,7 +137,7 @@ namespace BTNET.BVVM.BT.Orders
                 MinPos = orderFee * App.MIN_PNL_FEE_MULTIPLIER,
                 TimeInForce = OrderHelper.TIF(data.TimeInForce.ToString()),
                 Fulfilled = OrderHelper.Fulfilled(data.Quantity, data.QuantityFilled),
-                Helper = new OrderHelperViewModel(data.Side, tradingmode, data.Symbol)
+                OrderTradingMode = tradingmode,
             };
         }
 

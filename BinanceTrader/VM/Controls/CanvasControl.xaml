@@ -880,6 +880,29 @@
                                 Command="{Binding ScraperVM.DecreasePercentCommand}"
                                 IsEnabled="{Binding ScraperVM.IsChangeBiasEnabled}"/>
                         </StackPanel>
+                        <StackPanel
+                                Orientation="Horizontal"                     
+                                Grid.Row="5" 
+                                Grid.Column="0" 
+                                HorizontalAlignment="Center" 
+                                VerticalAlignment="Center">
+                            <CheckBox 
+                                    ToolTip="If you untick this box the scraper will place market orders when it Adds"
+                                    IsChecked="{Binding ScraperVM.UseLimitAdd, Mode=OneWay}"
+                                    Command="{Binding ScraperVM.UseLimitAddCommand}"/>
+                            <CheckBox 
+                                    ToolTip="If you untick this box the scraper will place market orders when it Closes"
+                                    IsChecked="{Binding ScraperVM.UseLimitClose, Mode=OneWay}"
+                                    Command="{Binding ScraperVM.UseLimitCloseCommand}"/>
+                            <CheckBox 
+                                    ToolTip="If you untick this box the scraper will place market orders when it Buys"
+                                    IsChecked="{Binding ScraperVM.UseLimitBuy, Mode=OneWay}"
+                                    Command="{Binding ScraperVM.UseLimitBuyCommand}"/>
+                            <CheckBox 
+                                    ToolTip="If you untick this box the scraper will place market orders when it Sells"
+                                    IsChecked="{Binding ScraperVM.UseLimitSell, Mode=OneWay}"
+                                    Command="{Binding ScraperVM.UseLimitSellCommand}"/>
+                        </StackPanel>
                         <TextBlock
                             Grid.Row="7"
                             Grid.ColumnSpan="2"
@@ -1265,22 +1288,14 @@
                                     ToolTip="Switch to next buy in the order list instead of waiting &#xA;This can be used to slowly close out orders"   
                                     IsChecked="{Binding ScraperVM.SwitchAutoIsChecked, Mode=OneWay}"
                                     IsEnabled="{Binding ScraperVM.IsChangeBiasEnabled}"
-                                    Command="{Binding ScraperVM.SwitchAutoCommand}"/>
+                                    Command="{Binding ScraperVM.UseSwitchAutoCommand}"/>
                             <CheckBox 
                                     ToolTip="If you tick this box the pnl/log will be cleared"
                                     IsChecked="{Binding ScraperVM.ClearStatsIsChecked, Mode=OneWay}"
                                     IsEnabled="{Binding ScraperVM.IsStartEnabled}"
-                                    Command="{Binding ScraperVM.ClearStatsCommand}"/>
+                                    Command="{Binding ScraperVM.TriggerClearStatsCommand}"/>
                         </StackPanel>
 
-                        <TextBlock
-                            Grid.Row="12"
-                            Grid.ColumnSpan="2"
-                            FontWeight="Bold"
-                            Foreground="White"
-                            Text="Symbol Ticker"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"/>
                         <TextBlock
                             Grid.Row="13"
                             Grid.Column="0"
@@ -1335,6 +1350,22 @@
                             ToolTip="Elapsed time of the Guesser"
                             Style="{StaticResource TextBoxRounded}"
                             Text="{Binding ScraperVM.ScraperCounter.GuesserElapsedString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock
+                            Grid.Row="16"
+                            Grid.Column="0"
+                            Foreground="White"
+                            VerticalAlignment="Center"
+                            Text="Dead Count" />
+                        <TextBox
+                            Grid.Row="16"
+                            Grid.Column="1"
+                            Margin="1,1,1,1"
+                            Background="Gray"
+                            Foreground="White"
+                            IsReadOnly="True"
+                            VerticalContentAlignment="Center"
+                            Style="{StaticResource TextBoxRounded}"
+                            Text="{Binding ScraperVM.ScraperCounter.GuesserDeadCount}" />
                     </Grid>
                 </StackPanel>
 
@@ -1365,20 +1396,20 @@
                       
                         <TextBlock
                             FontWeight="Bold"
-                            Grid.Row="11"
+                            Grid.Row="12"
                             Grid.ColumnSpan="2"
                             Foreground="White"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
                             Text="Guesser Overview" />
                         <TextBlock
-                            Grid.Row="12"
+                            Grid.Row="13"
                             Grid.Column="0"
                             Foreground="White"
                             VerticalAlignment="Center"
                             Text="Up Count" />
                         <TextBox
-                            Grid.Row="12"
+                            Grid.Row="13"
                             Grid.Column="1"
                             Margin="1,1,1,1"
                             Background="Gray"
@@ -1388,13 +1419,13 @@
                             Style="{StaticResource TextBoxRounded}"
                             Text="{Binding ScraperVM.ScraperCounter.GuesserUpCount}" />
                         <TextBlock
-                            Grid.Row="13"
+                            Grid.Row="14"
                             Grid.Column="0"
                             Foreground="White"
                             VerticalAlignment="Center"
                             Text="Divider" />
                         <TextBox
-                            Grid.Row="13"
+                            Grid.Row="14"
                             Grid.Column="1"
                             Margin="1,1,1,1"
                             Background="Gray"
@@ -1404,28 +1435,12 @@
                             Style="{StaticResource TextBoxRounded}"
                             Text="{Binding ScraperVM.ScraperCounter.GuesserDiv}" />
                         <TextBlock
-                            Grid.Row="14"
+                            Grid.Row="15"
                             Grid.Column="0"
                             Foreground="White"
                             VerticalAlignment="Center"
                             Text="Down Count" />
                         <TextBox
-                            Grid.Row="14"
-                            Grid.Column="1"
-                            Margin="1,1,1,1"
-                            Background="Gray"
-                            Foreground="White"
-                            IsReadOnly="True"
-                            VerticalContentAlignment="Center"
-                            Style="{StaticResource TextBoxRounded}"
-                            Text="{Binding ScraperVM.ScraperCounter.GuesserDownCount}" />                        
-                        <TextBlock
-                            Grid.Row="15"
-                            Grid.Column="0"
-                            Foreground="White"
-                            VerticalAlignment="Center"
-                            Text="Dead Count" />
-                        <TextBox
                             Grid.Row="15"
                             Grid.Column="1"
                             Margin="1,1,1,1"
@@ -1434,7 +1449,8 @@
                             IsReadOnly="True"
                             VerticalContentAlignment="Center"
                             Style="{StaticResource TextBoxRounded}"
-                            Text="{Binding ScraperVM.ScraperCounter.GuesserDeadCount}" />                       
+                            Text="{Binding ScraperVM.ScraperCounter.GuesserDownCount}" />                      
+               
 
                         <TextBlock
                             Grid.Row="0"
@@ -1616,9 +1632,23 @@
                             Margin="0,1,0,1"
                             Value="{Binding ScraperVM.ScraperCounter.GuesserDeadTime}"
                             IsEnabled="{Binding ScraperVM.IsSettingsEnabled}"/>
-
-
-
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Grid.Row="11"
+                            Grid.Column="0"
+                            Foreground="White" 
+                            ToolTip="When the guesser should settle orders, This should be a negative number"
+                            Text="Reverse Bias" />
+                        <tk:DecimalUpDown
+                            Grid.Row="11"
+                            Grid.Column="1"
+                            VerticalContentAlignment="Center"
+                            Margin="0,1,0,1"
+                            Maximum="-10"
+                            Increment="10"
+                            ToolTip="When the guesser should settle orders, This should be a negative number"
+                            Value="{Binding ScraperVM.GuesserReverseBias}"
+                            IsEnabled="{Binding ScraperVM.IsSettingsEnabled}"/>
                     </Grid>
                 </StackPanel>
 
@@ -1710,7 +1740,7 @@
                             Grid.Column="0"
                             Margin="2"
                             ToolTip="Manually add an order &#xA; The scraper will switch to this order with the current settings"
-                            Command="{Binding ScraperVM.StartNewCommand}" 
+                            Command="{Binding ScraperVM.AddNewCommand}" 
                             IsEnabled="{Binding ScraperVM.IsAddEnabled}"/>
                                 <Button 
                             Content="Close" 

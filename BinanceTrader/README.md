@@ -1,3 +1,44 @@
+### Version 2.7.0.5
+- [x] Fix a UI bug with the `One Second Average`
+
+### Version 2.7.0.4
+- [x] Resize Order Panel
+- [x] Show PnL Percent on Order Panel
+- [x] Fix a harmless bug in the WebSocket
+
+### Version 2.7.0.3
+- [x] Improve how Settings are loaded and stored
+- [x] This update will Reset your Settings
+
+### Version 2.7.0.2
+- [x] Save `Reverse Bias` setting
+
+### Version 2.7.0.1
+- [x] You can now change the reverse bias of the `Scraper`
+- [x] Fix a timing bug that could stop the `Scraper`
+
+### Version 2.7.0.0
+- [x] You can now choose between `Market` and `Limit FOK` orders for the `Scraper`
+- [x] Add `UseLimitAdd` checkbox to Scraper UI
+- [x] Add `UseLimitClose` checkbox to Scraper UI
+- [x] Add `UseLimitSell`  checkbox to Scraper UI
+- [x] Add `UseLimitBuy` checkbox to Scraper UI
+- [x] Save new `Settings` for the `Scraper`
+- [x] Cleanup existing `Settings`
+
+### Version 2.6.0.9
+- [x] Change how `WatchingGuesser` is created/started/stopped
+- [x] Change how `WaitingGuesser` is created/started/stopped
+- [x] Change how `WaitingMode` is created/started/stopped
+- [x] Fixes some timing related issues with the `Scraper`
+
+### Version 2.6.0.8
+- [x] All Orders placed by the Scraper are now `Fill or Kill Limit Orders`
+- [x] `Sell Percent` is now the `Minimum PnL` allowed
+- [x] `Reverse Percent` is now the `Minimum PnL` allowed
+- [x] Orders by the `Scraper` will fail if slippage occurs and it will return to the previous `Mode`
+- [x] You can now `Switch` when the Buy/Sell orders are backwards
+
 ### Version 2.6.0.7
 - [x] You can no longer manually close unprofitable trades with the `Scraper`
 - [x] The `Scraper` will avoid slippage when you click `Close`

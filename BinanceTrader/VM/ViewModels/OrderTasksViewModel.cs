@@ -54,38 +54,38 @@ namespace BTNET.VM.ViewModels
 
         private void Buy(object o)
         {
-            var order = (OrderBase)o;
-            InternalOrderTasks.ProcessOrder(order, OrderSide.Buy, false, order.Helper!.OrderTradingMode, false);
+            OrderBase order = (OrderBase)o;
+            InternalOrderTasks.ProcessOrder(order, OrderSide.Buy, false, false);
         }
 
         private void BuyAndSettle(object o)
         {
-            var order = (OrderBase)o;
-            InternalOrderTasks.ProcessOrder((OrderBase)o, OrderSide.Buy, false, order.Helper!.OrderTradingMode);
+            OrderBase order = (OrderBase)o;
+            InternalOrderTasks.ProcessOrder(order, OrderSide.Buy, false);
         }
 
         private void BuyBorrowAndSettle(object o)
         {
-            var order = (OrderBase)o;
-            InternalOrderTasks.ProcessOrder((OrderBase)o, OrderSide.Buy, true, order.Helper!.OrderTradingMode);
+            OrderBase order = (OrderBase)o;
+            InternalOrderTasks.ProcessOrder(order, OrderSide.Buy, true);
         }
 
         private void Sell(object o)
         {
-            var order = (OrderBase)o;
-            InternalOrderTasks.ProcessOrder(order, OrderSide.Sell, false, order.Helper!.OrderTradingMode, false);
+            OrderBase order = (OrderBase)o;
+            InternalOrderTasks.ProcessOrder(order, OrderSide.Sell, false, false);
         }
 
         private void SellAndSettle(object o)
         {
-            var order = (OrderBase)o;
-            InternalOrderTasks.ProcessOrder((OrderBase)o, OrderSide.Sell, false, order.Helper!.OrderTradingMode);
+            OrderBase order = (OrderBase)o;
+            InternalOrderTasks.ProcessOrder(order, OrderSide.Sell, false);
         }
 
         private void SellBorrowAndSettle(object o)
         {
-            var order = (OrderBase)o;
-            InternalOrderTasks.ProcessOrder((OrderBase)o, OrderSide.Sell, true, order.Helper!.OrderTradingMode);
+            OrderBase order = (OrderBase)o;
+            InternalOrderTasks.ProcessOrder(order, OrderSide.Sell, true);
         }
     }
 }

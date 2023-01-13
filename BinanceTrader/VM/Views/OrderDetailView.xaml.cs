@@ -66,7 +66,7 @@ namespace BTNET.VM.Views
                 SymbolTickerFeed.StopTicker().ConfigureAwait(false);
             }
 
-            CurrentOrder.Helper?.BreakSettleLoop();
+            CurrentOrder.BreakSettleLoop();
 
             return Task.CompletedTask;
         }
@@ -77,25 +77,25 @@ namespace BTNET.VM.Views
             {
                 decimal settlepercent = 0;
 
-                if (CurrentOrder.Helper != null)
+                if (CurrentOrder != null)
                 {
                     string fuf = OrderHelper.Fulfilled(CurrentOrder.Quantity, CurrentOrder.QuantityFilled);
                     decimal pnl = decimal.Round(OrderHelper.PnL(CurrentOrder, e.BestAsk, e.BestBid), App.DEFAULT_ROUNDING_PLACES);
                     if (CurrentOrder.Side == BinanceAPI.Enums.OrderSide.Buy)
                     {
-                        settlepercent = decimal.Round(CurrentOrder.Price + (CurrentOrder.CumulativeQuoteQuantityFilled / CurrentOrder.Quantity) * CurrentOrder.Helper.SettlePercent / 100, (int)CurrentOrder.Helper.PriceTickSizeScale);
+                        settlepercent = decimal.Round(CurrentOrder.Price + (CurrentOrder.CumulativeQuoteQuantityFilled / CurrentOrder.Quantity) * CurrentOrder.SettlePercent / 100, (int)CurrentOrder.PriceTickSizeScale);
                     }
                     else
                     {
-                        settlepercent = decimal.Round(CurrentOrder.Price - (CurrentOrder.CumulativeQuoteQuantityFilled / CurrentOrder.Quantity) * CurrentOrder.Helper.SettlePercent / 100, (int)CurrentOrder.Helper.PriceTickSizeScale);
+                        settlepercent = decimal.Round(CurrentOrder.Price - (CurrentOrder.CumulativeQuoteQuantityFilled / CurrentOrder.Quantity) * CurrentOrder.SettlePercent / 100, (int)CurrentOrder.PriceTickSizeScale);
                     }
 
                     InvokeUI.CheckAccess(() =>
                     {
                         CurrentOrder.Pnl = pnl;
-                        CurrentOrder.Helper.Bid = e.BestBid;
-                        CurrentOrder.Helper.Ask = e.BestAsk;
-                        CurrentOrder.Helper.SettlePercentDecimal = settlepercent;
+                        CurrentOrder.Bid = e.BestBid;
+                        CurrentOrder.Ask = e.BestAsk;
+                        CurrentOrder.SettlePercentDecimal = settlepercent;
                         CurrentOrder.Fulfilled = fuf;
                     });
                 }

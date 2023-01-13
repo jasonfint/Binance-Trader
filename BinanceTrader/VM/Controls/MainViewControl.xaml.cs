@@ -24,7 +24,6 @@
 
 using BTNET.BVVM;
 using System.Windows.Controls;
-using System.Windows.Input;
 
 namespace BTNET.VM.Controls
 {
@@ -36,14 +35,6 @@ namespace BTNET.VM.Controls
         public MainViewControl()
         {
             InitializeComponent();
-        }
-
-        private void Browser_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (e.Key == Key.S && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
-            {
-                e.Handled = true;
-            }
         }
 
         private void GridSplitter_DragDelta(object sender, System.Windows.Controls.Primitives.DragDeltaEventArgs e)

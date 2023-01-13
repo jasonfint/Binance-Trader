@@ -32,6 +32,7 @@ namespace BTNET.BVVM
         public SocketClientHost SocketWatchlistTicker { get; set; }
         public SocketClientHost SocketSymbolTicker { get; set; }
         public SocketClientHost SocketClient { get; set; }
+
         public BinanceClientHost Local { get; set; }
 
         public BTClient(CancellationToken waitToken = default)

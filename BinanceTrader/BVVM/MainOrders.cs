@@ -366,10 +366,12 @@ namespace BTNET.BVVM
                 foreach (var order in Current)
                 {
                     var pnl = decimal.Round(OrderHelper.PnL(order, RealTimeVM.AskPrice, RealTimeVM.BidPrice), App.DEFAULT_ROUNDING_PLACES);
+                    var pnlp = OrderHelper.UpdatePnlPercent(order, pnl);
 
                     InvokeUI.CheckAccess(() =>
                     {
                         order.Pnl = pnl;
+                        order.PnlPercent = pnlp;
                     });
 
                     if (_currentInterestRate > 0)

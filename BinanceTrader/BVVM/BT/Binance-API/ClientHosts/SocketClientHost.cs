@@ -65,7 +65,7 @@ namespace BinanceAPI.ClientHosts
         /// <param name="options">The options to use for this client</param>
         public SocketClientHost(SocketClientHostOptions options) : base(options)
         {
-            Spot = new BinanceSocketClientSpot(this, options);
+            Spot = new BinanceSocketClientSpot(this);
 
             if (options == null)
             {
@@ -90,6 +90,7 @@ namespace BinanceAPI.ClientHosts
         {
             DefaultOptions = options;
         }
+
         internal Task<CallResult<BaseSocketClient>> SubscribeInternal<T>(string url, IEnumerable<string> topics, Action<DataEvent<T>> onData, bool userStream)
         {
             BinanceSocketRequest request = new BinanceSocketRequest
@@ -98,7 +99,6 @@ namespace BinanceAPI.ClientHosts
                 Params = topics.ToArray(),
                 Id = NextId()
             };
-
 
             return SubscribeAsync(url, request, false, onData, this, userStream);
         }

@@ -33,6 +33,7 @@ namespace BTNET.BVVM.BT.Orders
     {
         private const int ONE_HUNDRED = 100;
         private const int HOURS = 24;
+        private const decimal ZERO = 0;
 
         public static decimal InterestPerHour(decimal quantity, decimal interestRate)
         {
@@ -64,6 +65,27 @@ namespace BTNET.BVVM.BT.Orders
             }
 
             return t;
+        }
+
+        public static decimal UpdatePnlPercent(OrderBase order, decimal pnl)
+        {
+            decimal total = ZERO;
+            if (order.CumulativeQuoteQuantityFilled != ZERO)
+            {
+                total = (order.CumulativeQuoteQuantityFilled / order.QuantityFilled) * order.QuantityFilled;
+            }
+            else
+            {
+                total = order.Price * order.QuantityFilled;
+            }
+
+            decimal currentPnlPercent = ZERO;
+            if (pnl != ZERO && total != ZERO)
+            {
+                currentPnlPercent = (pnl / total) * ONE_HUNDRED;
+            }
+
+            return currentPnlPercent;
         }
 
         public static decimal PnL(OrderBase order, decimal askPrice, decimal bidPrice)
@@ -104,6 +126,23 @@ namespace BTNET.BVVM.BT.Orders
             }
         }
 
+        public static decimal PnLAsk(OrderBase order, decimal askPrice)
+        {
+            if (askPrice == 0)
+            {
+                return 0;
+            }
+
+            if (order.CumulativeQuoteQuantityFilled != 0)
+            {
+                return order.CumulativeQuoteQuantityFilled - (askPrice * order.QuantityFilled);
+            }
+            else
+            {
+                return (order.Price * order.QuantityFilled) - (askPrice * order.QuantityFilled);
+            }
+        }
+
         public static decimal PnLBid(OrderBase order, decimal bidPrice)
         {
             if (bidPrice == 0)
@@ -113,11 +152,11 @@ namespace BTNET.BVVM.BT.Orders
 
             if (order.CumulativeQuoteQuantityFilled != 0)
             {
-                return (bidPrice * order.QuantityFilled) - order.CumulativeQuoteQuantityFilled;                
+                return (bidPrice * order.QuantityFilled) - order.CumulativeQuoteQuantityFilled;
             }
             else
             {
-                return (bidPrice * order.QuantityFilled) - (order.Price * order.QuantityFilled);                
+                return (bidPrice * order.QuantityFilled) - (order.Price * order.QuantityFilled);
             }
         }
 

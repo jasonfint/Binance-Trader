@@ -210,10 +210,10 @@ namespace BTNET.BVVM.BT.Orders
         /// <param name="borrow">true if the newly placed order should borrow where available</param>
         /// <param name="tradingMode">Trading mode for the order being processed</param>
         /// <param name="quantitypadding">Additional quantity to be added to the order (default 0)</param>
-        public static void ProcessOrder(OrderBase order, OrderSide orderSide, bool borrow, TradingMode tradingMode, bool settle = true, decimal quantitypadding = 0)
+        public static void ProcessOrder(OrderBase order, OrderSide orderSide, bool borrow, bool settle = true, decimal quantitypadding = 0)
         {
 #if DEBUG
-            WriteLog.Info("Symbol: " + order.Symbol + " | Filled: " + order.QuantityFilled + " | OrderPadding: " + quantitypadding + " | Price: " + order.Price + " | Mode: " + tradingMode + " | Borrow: " + borrow + " | Side: " + orderSide);
+            WriteLog.Info("Symbol: " + order.Symbol + " | Filled: " + order.QuantityFilled + " | OrderPadding: " + quantitypadding + " | Price: " + order.Price + " | Mode: " + order.OrderTradingMode + " | Borrow: " + borrow + " | Side: " + orderSide);
 #endif
 
             _ = Task.Run(async () =>
@@ -228,7 +228,7 @@ namespace BTNET.BVVM.BT.Orders
                 }
 
                 decimal settleAmount = 0;
-                decimal amountBeforeOrder = CurrentAvailableAmount(symbolInfo, tradingMode);
+                decimal amountBeforeOrder = CurrentAvailableAmount(symbolInfo, order.OrderTradingMode);
 
 #if DEBUG
                 WriteLog.Info("Settle Amount Before Order: " + amountBeforeOrder);
@@ -237,7 +237,7 @@ namespace BTNET.BVVM.BT.Orders
                 var newOrderQuantity = order.QuantityFilled + quantitypadding;
 
                 // Add to Queue
-                TradeVM.TradeRunner.AddToQueue(order.Symbol, newOrderQuantity, 0, tradingMode, borrow, orderSide, false);
+                TradeVM.TradeRunner.AddToQueue(order.Symbol, newOrderQuantity, 0, order.OrderTradingMode, borrow, orderSide, false);
 
                 if (!settle)
                 {
@@ -248,7 +248,7 @@ namespace BTNET.BVVM.BT.Orders
                 var startTime = DateTime.UtcNow.Ticks;
                 while (await Loop.Delay(startTime, DELAY_MS, EXPIRE_TIME).ConfigureAwait(false))
                 {
-                    settleAmount = CurrentAvailableAmount(symbolInfo, tradingMode);
+                    settleAmount = CurrentAvailableAmount(symbolInfo, order.OrderTradingMode);
                     if (settleAmount != amountBeforeOrder)
                     {
                         break;
@@ -264,7 +264,7 @@ namespace BTNET.BVVM.BT.Orders
 #if DEBUG
                     WriteLog.Info("Defer Loop");
 #endif
-                    settleAmount = await DeferAsync(startTime, settleAmount, tradingMode, symbolInfo).ConfigureAwait(false);
+                    settleAmount = await DeferAsync(startTime, settleAmount, order.OrderTradingMode, symbolInfo).ConfigureAwait(false);
                 }
 
 #if DEBUG
@@ -275,7 +275,7 @@ namespace BTNET.BVVM.BT.Orders
                 {
                     decimal borrowed = 0;
 
-                    if (tradingMode == TradingMode.Margin)
+                    if (order.OrderTradingMode == TradingMode.Margin)
                     {
                         lock (Assets.MarginAssetLock)
                         {
@@ -296,7 +296,7 @@ namespace BTNET.BVVM.BT.Orders
 
                     if (borrowed != 0)
                     {
-                        await SettleAssetAsync(settleAmount, borrowed, symbolInfo.BaseAsset, symbolInfo.Name, tradingMode == TradingMode.Isolated).ConfigureAwait(false);
+                        await SettleAssetAsync(settleAmount, borrowed, symbolInfo.BaseAsset, symbolInfo.Name, order.OrderTradingMode == TradingMode.Isolated).ConfigureAwait(false);
                     }
                     else
                     {

@@ -66,32 +66,42 @@ namespace BTNET.VM.ViewModels
         {
             InvokeUI.CheckAccess(() =>
             {
-                AverageFiveSeconds = 0;
                 AverageOneSecond = 0;
+                HighOneSecond = 0;
+                LowOneSecond = 0;
+                Diff2OneSecond = 0;
+                VolumeOneSecond = 0;
+
+                AverageFiveSeconds = 0;
                 HighFiveSeconds = 0;
                 LowFiveSeconds = 0;
                 Diff2FiveSeconds = 0;
                 VolumeFiveSeconds = 0;
+
                 Average = 0;
                 High = 0;
                 Low = 0;
                 Diff2 = 0;
                 Volume = 0;
+
                 AverageFive = 0;
                 HighFive = 0;
                 LowFive = 0;
                 Diff2Five = 0;
                 VolumeFive = 0;
+
                 AverageFifteen = 0;
                 HighFifteen = 0;
                 LowFifteen = 0;
                 Diff2Fifteen = 0;
                 VolumeFifteen = 0;
+
                 AverageHour = 0;
                 HighHour = 0;
                 LowHour = 0;
                 Diff2Hour = 0;
                 VolumeHour = 0;
+
                 Insights.Clear();
             });
         }

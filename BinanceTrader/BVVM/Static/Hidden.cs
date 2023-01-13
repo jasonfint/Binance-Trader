@@ -81,12 +81,8 @@ namespace BTNET.BVVM
                 {
                     InvokeUI.CheckAccess(() =>
                     {
-                        if (r.Helper != null)
-                        {
-                            r.Helper.SettleOrderEnabled = false;
-                            r.Helper.SettleControlsEnabled = false;
-                        }
-
+                        r.SettleOrderEnabled = false;
+                        r.SettleControlsEnabled = false;
                         Orders.Current.Remove(r);
                     });
                 }

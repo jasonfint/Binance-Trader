@@ -303,6 +303,7 @@ namespace BTNET.BVVM.BT.Market
 
         private void ResetTimers()
         {
+            OneSecond.Stop();
             FiveSeconds.Stop();
             OneMinute.Stop();
             FiveMinutes.Stop();
@@ -320,6 +321,7 @@ namespace BTNET.BVVM.BT.Market
             FiveMinutes = new PrecisionTimer();
             FifteenMinutes = new PrecisionTimer();
             OneHour = new PrecisionTimer();
+            OneSecond = new PrecisionTimer();
 
             InsightsTimer = new PrecisionTimer();
             QueueTimer = new PrecisionTimer();
@@ -328,9 +330,9 @@ namespace BTNET.BVVM.BT.Market
 
         private void Clear()
         {
-            TradeTicks.Clear();
-            TradeTicksTwo.Clear();
-            TradeTicksOneHour.Clear();
+            TradeTicks = new TradeTicks();
+            TradeTicksTwo = new TradeTicks();
+            TradeTicksOneHour = new TradeTicks();
             TradeQueue = new ConcurrentQueue<BinanceStreamTrade>();
         }
 

@@ -32,7 +32,6 @@
     xmlns:converters="clr-namespace:BTNET.BV.Converters"
     Name="SymbolControl"
     AllowDrop="False"
-    PreviewKeyDown="Browser_PreviewKeyDown"
     ScrollViewer.CanContentScroll="True" 
     Background="Transparent">
 
@@ -62,7 +61,7 @@
             Background="{DynamicResource MenuPopupBrush}"
             DragDelta="GridSplitter_DragDelta"
             Opacity="{Binding SettingsVM.Opacity}"/>
-
+        
         <controls:TabControl 
             VerticalAlignment="Bottom"
             HorizontalAlignment="Center"/>

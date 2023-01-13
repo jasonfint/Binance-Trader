@@ -26,9 +26,29 @@ namespace BTNET.BV.Abstract
 {
     internal class SettingsObject
     {
-        public SettingsObject(bool? showBorrowInfoIsChecked, bool? showSymbolInfoIsChecked, bool? showBreakDownInfoIsChecked,
-            bool? showMarginInfoIsChecked, bool? showIsolatedInfoIsChecked, bool? transparentTitleIsChecked, bool? checkForUpdates, bool? sellLimitChecked, bool? sellBorrowChecked, bool? buyBorrowChecked, bool? buyLimitChecked, bool? showNotifications, bool? disableOpacity,
-            bool? autoSave, bool? keepFirstOrder, bool? dangerousButtonsIsChecked, double watchListHeight, bool? showScraperButtonIsChecked)
+        private int keepFirstOrder = 1;
+        private int autoSaveSettings = 1;
+        private int showNotifications = 2;
+        private int buyBorrowChecked = 1;
+        private int buyLimitChecked = 1;
+        private int sellBorrowChecked = 1;
+        private int sellLimitChecked = 1;
+        private int checkForUpdates = 1;
+        private int disableOpacity = 1;
+        private double watchListHeight = 200;
+        private int dangerousButtonsIsChecked = 1;
+        private int showScraperButtonIsChecked = 2;
+        private int showIsolatedInfoIsChecked = 2;
+        private int showMarginInfoIsChecked = 2;
+        private int showBreakDownInfoIsChecked = 2;
+        private int showSymbolInfoIsChecked = 2;
+        private int showBorrowInfoIsChecked = 2;
+        private int transparentTitleIsChecked;
+
+        public SettingsObject(int showBorrowInfoIsChecked, int showSymbolInfoIsChecked, int showBreakDownInfoIsChecked,
+                    int showMarginInfoIsChecked, int showIsolatedInfoIsChecked, int transparentTitleIsChecked, int checkForUpdates, int sellLimitChecked, int sellBorrowChecked,
+                    int buyBorrowChecked, int buyLimitChecked, int showNotifications, int disableOpacity,
+                    int autoSave, int keepFirstOrder, int dangerousButtonsIsChecked, double watchListHeight, int showScraperButtonIsChecked)
         {
             ShowBorrowInfoIsChecked = showBorrowInfoIsChecked;
             ShowSymbolInfoIsChecked = showSymbolInfoIsChecked;
@@ -55,31 +75,214 @@ namespace BTNET.BV.Abstract
             WatchListHeight = watchListHeight;
         }
 
-        public bool? DisableOpacity { get; set; }
-        public bool? TransparentTitleIsChecked { get; set; }
+        public int DisableOpacity
+        {
+            get => disableOpacity;
+            set
+            {
+                if (value != 0)
+                {
+                    disableOpacity = value;
+                }
+            }
+        }
+        public int TransparentTitleIsChecked
+        {
+            get => transparentTitleIsChecked;
+            set
+            {
+                if (value != 0)
+                {
+                    transparentTitleIsChecked = value;
+                }
+            }
+        }
 
-        public bool? ShowBorrowInfoIsChecked { get; set; }
-        public bool? ShowSymbolInfoIsChecked { get; set; }
-        public bool? ShowBreakDownInfoIsChecked { get; set; }
-        public bool? ShowMarginInfoIsChecked { get; set; }
-        public bool? ShowIsolatedInfoIsChecked { get; set; }
-        public bool? ShowScraperButtonIsChecked { get; set; }
+        public int ShowBorrowInfoIsChecked
+        {
+            get => showBorrowInfoIsChecked;
+            set
+            {
+                if (value != 0)
+                {
+                    showBorrowInfoIsChecked = value;
+                }
+            }
+        }
 
-        public bool? DangerousButtonsIsChecked { get; set; }
+        public int ShowSymbolInfoIsChecked
+        {
+            get => showSymbolInfoIsChecked; set
+            {
+                if (value != 0)
+                {
+                    showSymbolInfoIsChecked = value;
+                }
+            }
+        }
 
-        public double? WatchListHeight { get; set; }
+        public int ShowBreakDownInfoIsChecked
+        {
+            get => showBreakDownInfoIsChecked; set
+            {
+                if (value != 0)
+                {
+                    showBreakDownInfoIsChecked = value;
+                }
+            }
+        }
 
-        public bool? CheckForUpdates { get; set; }
+        public int ShowMarginInfoIsChecked
+        {
+            get => showMarginInfoIsChecked; set
+            {
+                if (value != 0)
+                {
+                    showMarginInfoIsChecked = value;
+                }
+            }
+        }
 
-        public bool? SellLimitChecked { get; set; }
-        public bool? SellBorrowChecked { get; set; }
+        public int ShowIsolatedInfoIsChecked
+        {
+            get => showIsolatedInfoIsChecked; set
+            {
+                if (value != 0)
+                {
+                    showIsolatedInfoIsChecked = value;
+                }
+            }
+        }
 
-        public bool? BuyLimitChecked { get; set; }
-        public bool? BuyBorrowChecked { get; set; }
+        public int ShowScraperButtonIsChecked
+        {
+            get => showScraperButtonIsChecked; set
+            {
+                if (value != 0)
+                {
+                    showScraperButtonIsChecked = value;
+                }
+            }
+        }
 
-        public bool? ShowNotifications { get; set; }
-        public bool? AutoSaveSettings { get; set; }
+        public int DangerousButtonsIsChecked
+        {
+            get => dangerousButtonsIsChecked;
+            set
+            {
+                if (value != 0)
+                {
+                    dangerousButtonsIsChecked = value;
+                }
+            }
+        }
 
-        public bool? KeepFirstOrder { get; set; }
+        public double WatchListHeight
+        {
+            get => watchListHeight;
+            set
+            {
+                if (value != 0)
+                {
+                    watchListHeight = value;
+                }
+            }
+        }
+
+        public int CheckForUpdates
+        {
+            get => checkForUpdates;
+            set
+            {
+                if (value != 0)
+                {
+                    checkForUpdates = value;
+                }
+            }
+        }
+
+        public int SellLimitChecked
+        {
+            get => sellLimitChecked;
+            set
+            {
+                if (value != 0)
+                {
+                    sellLimitChecked = value;
+                }
+            }
+        }
+
+        public int SellBorrowChecked
+        {
+            get => sellBorrowChecked;
+            set
+            {
+                if (value != 0)
+                {
+                    sellBorrowChecked = value;
+                }
+            }
+        }
+
+        public int BuyLimitChecked
+        {
+            get => buyLimitChecked;
+            set
+            {
+                if (value != 0)
+                {
+                    buyLimitChecked = value;
+                }
+            }
+        }
+
+        public int BuyBorrowChecked
+        {
+            get => buyBorrowChecked;
+            set
+            {
+                if (value != 0)
+                {
+                    buyBorrowChecked = value;
+                }
+            }
+        }
+
+        public int ShowNotifications
+        {
+            get => showNotifications;
+            set
+            {
+                if (value != 0)
+                {
+                    showNotifications = value;
+                }
+            }
+        }
+
+        public int AutoSaveSettings
+        {
+            get => autoSaveSettings;
+            set
+            {
+                if (value != 0)
+                {
+                    autoSaveSettings = value;
+                }
+            }
+        }
+
+        public int KeepFirstOrder
+        {
+            get => keepFirstOrder;
+            set
+            {
+                if (value != 0)
+                {
+                    keepFirstOrder = value;
+                }
+            }
+        }
     }
 }

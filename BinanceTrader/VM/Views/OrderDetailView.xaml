@@ -103,7 +103,7 @@
                     Background="Transparent"
                     HorizontalAlignment="Right"
                     BorderThickness="0"
-                    Command="{Binding Path=Helper.OptionsCommand}"
+                    Command="{Binding Path=OptionsCommand}"
                     Style="{StaticResource ExitButton}"
                     ToolTip="Exit Order Detail" />
             </Grid>
@@ -117,7 +117,7 @@
                 Margin="1"
                 FontWeight="Bold"
                 Foreground="White"
-                Text="{Binding Helper.DisplayTradingMode}" />
+                Text="{Binding DisplayTradingMode}" />
             <TextBox
                 Margin="1"
                 Background="Gray"
@@ -278,7 +278,7 @@
                     IsReadOnly="True"
                     ToolTip="The current ticker price based on the order side"
                     Style="{StaticResource TextBoxRounded}"
-                    Text="{Binding Helper.TickerPrice, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, StringFormat='#,0.00##########'}" />
+                    Text="{Binding TickerPrice, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, StringFormat='#,0.00##########'}" />
             </Grid>
             <!--<StackPanel Orientation="Horizontal">
                 <TextBlock Text="ITDQ: " Foreground="White" />
@@ -333,9 +333,9 @@
                         Grid.Column="1"
                         Margin="2"
                         ToolTip="Start the Order Action, You should configure the boxes below before you tick this &#xA;If you use this to Sell you might need to tick borrow to settle"
-                        Command="{Binding Helper.SettleOrderToggleCommand}"
-                        IsEnabled="{Binding Helper.SettleOrderEnabled}"
-                        IsChecked="{Binding Helper.ToggleSettleChecked, Mode=TwoWay, UpdateSourceTrigger=Explicit}" />
+                        Command="{Binding SettleOrderToggleCommand}"
+                        IsEnabled="{Binding SettleOrderEnabled}"
+                        IsChecked="{Binding ToggleSettleChecked, Mode=TwoWay, UpdateSourceTrigger=Explicit}" />
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="0"
@@ -347,10 +347,10 @@
                         Grid.Row="1"
                         Grid.Column="1"
                         Margin="2"
-                        IsEnabled="{Binding Helper.SettleControlsEnabled}"
+                        IsEnabled="{Binding SettleControlsEnabled}"
                         ToolTip="If borrowing should be used where available when settling automatically"
-                        Command="{Binding Helper.BorrowForSettleToggleCommand}"
-                        IsChecked="{Binding Helper.BorrowForSettleChecked, Mode=TwoWay, UpdateSourceTrigger=Explicit}" />
+                        Command="{Binding BorrowForSettleToggleCommand}"
+                        IsChecked="{Binding BorrowForSettleChecked, Mode=TwoWay, UpdateSourceTrigger=Explicit}" />
                     <StackPanel     
                         Grid.Row="2"
                         Grid.Column="0" 
@@ -361,19 +361,19 @@
                         VerticalAlignment="Center"
                         ToolTip="Desired PnL percentage to settle the order, must be a positive number"
                         Foreground="White"
-                        Text="{Binding Helper.SettlePercentDecimal}" />
+                        Text="{Binding SettlePercentDecimal}" />
                     </StackPanel>
        
                     <tk:DecimalUpDown
                         Grid.Row="2"
                         Grid.Column="1"
                         VerticalContentAlignment="Center"
-                        IsEnabled="{Binding Helper.SettleControlsEnabled}"
+                        IsEnabled="{Binding SettleControlsEnabled}"
                         ToolTip="Desired PnL percentage to settle the order, must be a positive number"
                         Margin="2,2,2,2"
                         Minimum="0.001"
                         Increment="0.01"
-                        Value="{Binding Helper.SettlePercent}" />
+                        Value="{Binding SettlePercent}" />
                     <TextBlock
                         Grid.Row="3"
                         Grid.Column="0"
@@ -385,12 +385,12 @@
                         Grid.Row="3"
                         Grid.Column="1"
                         VerticalContentAlignment="Center"
-                        IsEnabled="{Binding Helper.SettleControlsEnabled}"
+                        IsEnabled="{Binding SettleControlsEnabled}"
                         Margin="2,2,2,2"
                         ToolTip="Allows you to change the quantity of the order, can be used to reduce the quantity by entering a negative value"
                         DefaultValue="0"
-                        Increment="{Binding Helper.StepSize}"
-                        Value="{Binding Helper.QuantityModifier}" />
+                        Increment="{Binding StepSize}"
+                        Value="{Binding QuantityModifier}" />
                     <TextBlock
                         Grid.Row="4"
                         Grid.Column="0"
@@ -403,7 +403,7 @@
                         Height="18"
                         Margin="2"
                         IsEnabled="false"
-                        SelectedItem="{Binding Helper.SettleMode, Mode=OneWayToSource,UpdateSourceTrigger=PropertyChanged}"
+                        SelectedItem="{Binding SettleMode, Mode=OneWayToSource,UpdateSourceTrigger=PropertyChanged}"
                         TextBlock.FontSize="9">
                         <ComboBoxItem IsSelected="True">Market</ComboBoxItem>
                         <ComboBoxItem>Limit</ComboBoxItem>

@@ -59,7 +59,7 @@ namespace BinanceAPI.ClientBase
         /// </summary>
         public event Action<ConnectionStatus>? ConnectionStatusChanged;
 
-        public Action<JToken> MessageHandler { get; set; } = delegate { };
+        public Action<JToken>? MessageHandler { get; set; } = delegate { };
 
         private readonly SocketClientHost socketClient;
         private readonly List<PendingRequest> pendingRequests;
@@ -233,7 +233,7 @@ namespace BinanceAPI.ClientBase
         {
             if (socketClient.MessageMatchesHandler(messageEvent, Request))
             {
-                MessageHandler(messageEvent);
+                MessageHandler?.Invoke(messageEvent);
                 return true;
             }
 
@@ -360,8 +360,9 @@ namespace BinanceAPI.ClientBase
 
         internal async Task<bool> UnsubscribeAsync()
         {
-            MessageHandler = null!;
-            return await socketClient.UnsubscribeAsync(this, Request).ConfigureAwait(false);
+            bool b = await socketClient.UnsubscribeAsync(this, Request).ConfigureAwait(false);
+            await DisposeAsync().ConfigureAwait(false);
+            return b;
         }
 
         internal async Task<CallResult<bool>> ResubscribeAsync()
@@ -645,7 +646,8 @@ namespace BinanceAPI.ClientBase
             else
             {
                 SocketOnStatusChanged(ConnectionStatus.Closed);
-                await DisposeAsync().ConfigureAwait(false);
+                SocketLog?.Info($"Socket {Request.Id} closed");
+                ClientSocket?.Dispose();
             }
 
         }
@@ -655,14 +657,9 @@ namespace BinanceAPI.ClientBase
         /// </summary>
         public async Task DisposeAsync()
         {
-            SocketLog?.Info($"Socket {Request.Id} closed");
             ShouldAttemptConnection = false;
-
             await InternalResetSocketAsync().ConfigureAwait(false);
-
             DisconnectTime = DateTime.UtcNow;
-
-            ClientSocket.Dispose();
 #if DEBUG
             SocketLog?.Trace($"Socket {Request.Id} disposed..");
 #endif

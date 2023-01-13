@@ -80,8 +80,8 @@ namespace BTNET.BVVM
         private const string TRY_AGAIN = "Select Symbol Again";
         private const string INIT_COMMANDS = "Initialized Commands";
 
-        public readonly static int ORDER_LIST_WIDTH_SPOT = 745;
-        public readonly static int ORDER_LIST_WIDTH_MARGIN = 1170;
+        public readonly static int ORDER_LIST_WIDTH_SPOT = 890;
+        public readonly static int ORDER_LIST_WIDTH_MARGIN = 1310;
         public readonly static int HALF = 2;
 
         private const int ZERO = 0;

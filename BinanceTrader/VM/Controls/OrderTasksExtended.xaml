@@ -42,50 +42,50 @@
                 Height="20"
                 Margin="0,0,1,0"
                 HorizontalAlignment="Left"
-                Command="{Binding Path=Helper.OrderTasks.BuyCommand}"
+                Command="{Binding OrderTasks.BuyCommand}"
                 CommandParameter="{Binding}"
                 Content="Buy"
                 TextBlock.FontSize="10"
                 ToolTip="Buy Filled Amount at Market Price &#x0a; Will NOT Settle Automatically"
                 ToolTipService.ShowDuration="2000"
-                IsEnabled="{Binding Helper.SettleControlsEnabled}"
-                Visibility="{Binding Path=Helper.IsOrderSellSide, Converter={StaticResource BoolToVis}}" />
+                IsEnabled="{Binding SettleControlsEnabled}"
+                Visibility="{Binding IsOrderSellSide, Converter={StaticResource BoolToVis}}" />
             <Button
                 Height="20"
                 Margin="0,0,1,0"
                 HorizontalAlignment="Left"
-                Command="{Binding Path=Helper.OrderTasks.BuyAndSettleCommand}"
+                Command="{Binding OrderTasks.BuyAndSettleCommand}"
                 CommandParameter="{Binding}"
                 Content="Buy/Settle"
                 TextBlock.FontSize="10"
                 ToolTip="Buy Filled Amount at Market Price &#x0a;Settles All Base Asset Automatically"
                 ToolTipService.ShowDuration="2000"
-                IsEnabled="{Binding Helper.SettleControlsEnabled}"
-                Visibility="{Binding Path=Helper.IsOrderSellSideMargin, Converter={StaticResource BoolToVis}}" />
+                IsEnabled="{Binding SettleControlsEnabled}"
+                Visibility="{Binding IsOrderSellSideMargin, Converter={StaticResource BoolToVis}}" />
             <Button
                 Height="20"
                 Margin="0,0,1,0"
                 HorizontalAlignment="Left"
-                Command="{Binding Path=Helper.OrderTasks.SellCommand}"
+                Command="{Binding OrderTasks.SellCommand}"
                 CommandParameter="{Binding}"
                 Content="Sell"
                 TextBlock.FontSize="10"
                 ToolTip="Sell Filled Amount at Market Price &#x0a; Will NOT Settle Automatically"
                 ToolTipService.ShowDuration="2000"
-                IsEnabled="{Binding Helper.SettleControlsEnabled}"
-                Visibility="{Binding Path=Helper.IsOrderBuySide, Converter={StaticResource BoolToVis}}" />
+                IsEnabled="{Binding SettleControlsEnabled}"
+                Visibility="{Binding IsOrderBuySide, Converter={StaticResource BoolToVis}}" />
             <Button
                 Height="20"
                 Margin="0,0,1,0"
                 HorizontalAlignment="Left"
-                Command="{Binding Path=Helper.OrderTasks.SellAndSettleCommand}"
+                Command="{Binding OrderTasks.SellAndSettleCommand}"
                 CommandParameter="{Binding}"
                 Content="Sell/Settle"
                 TextBlock.FontSize="10"
                 ToolTip="Sell Filled Amount at Market Price &#x0a;Settles All Base Asset Automatically"
                 ToolTipService.ShowDuration="2000"
-                IsEnabled="{Binding Helper.SettleControlsEnabled}"
-                Visibility="{Binding Path=Helper.IsOrderBuySideMargin, Converter={StaticResource BoolToVis}}" />
+                IsEnabled="{Binding SettleControlsEnabled}"
+                Visibility="{Binding IsOrderBuySideMargin, Converter={StaticResource BoolToVis}}" />
         </StackPanel>
         <StackPanel
             Margin="0,1,0,0"
@@ -96,25 +96,25 @@
                 Height="20"
                 Margin="0,0,1,0"
                 HorizontalAlignment="Left"
-                Command="{Binding Path=Helper.OrderTasks.BuyBorrowAndSettleCommand}"
+                Command="{Binding OrderTasks.BuyBorrowAndSettleCommand}"
                 CommandParameter="{Binding}"
                 Content="Buy/Borrow/Settle"
                 TextBlock.FontSize="10"
                 ToolTip="Buy Filled Amount at Market Price &#x0a;Borrowing If Required &#x0a;Settles All Base Asset Automatically"
                 ToolTipService.ShowDuration="2000"
-                IsEnabled="{Binding Helper.SettleControlsEnabled}"
-                Visibility="{Binding Path=Helper.IsOrderSellSideMargin, Converter={StaticResource BoolToVis}}" />
+                IsEnabled="{Binding SettleControlsEnabled}"
+                Visibility="{Binding IsOrderSellSideMargin, Converter={StaticResource BoolToVis}}" />
             <Button
                 Height="20"
                 HorizontalAlignment="Left"
-                Command="{Binding Path=Helper.OrderTasks.SellBorrowAndSettleCommand}"
+                Command="{Binding OrderTasks.SellBorrowAndSettleCommand}"
                 CommandParameter="{Binding}"
                 Content="Sell/Borrow/Settle"
                 TextBlock.FontSize="10"
                 ToolTip="Sell Filled Amount at Market Price &#x0a;Borrowing If Required &#x0a;Settles All Base Asset Automatically"
                 ToolTipService.ShowDuration="2000"
-                IsEnabled="{Binding Helper.SettleControlsEnabled}"
-                Visibility="{Binding Path=Helper.IsOrderBuySideMargin, Converter={StaticResource BoolToVis}}" />
+                IsEnabled="{Binding SettleControlsEnabled}"
+                Visibility="{Binding IsOrderBuySideMargin, Converter={StaticResource BoolToVis}}" />
         </StackPanel>
         <StackPanel
             Margin="0,1,0,0"
@@ -124,17 +124,17 @@
             <Button
                 Height="20"
                 Margin="0,0,1,0"
-                Command="{Binding Path=Helper.ResetInterestCommand}"
+                Command="{Binding ResetInterestCommand}"
                 CommandParameter="{Binding}"
                 Content="Reset Interest"
                 TextBlock.FontSize="10"
                 ToolTip="Reset the Running Interest on the Order"
                 ToolTipService.ShowDuration="2000"
-                Visibility="{Binding Path=Helper.IsNotSpot, Converter={StaticResource BoolToVis}}" />
+                Visibility="{Binding IsNotSpot, Converter={StaticResource BoolToVis}}" />
             <Button
                 Height="20"
                 Margin="0,0,1,0"
-                Command="{Binding Path=Helper.CancelCommand}"
+                Command="{Binding CancelCommand}"
                 CommandParameter="{Binding}"
                 Content="Cancel"
                 TextBlock.FontSize="10"
@@ -143,11 +143,11 @@
                 Visibility="{Binding Path=CanCancel, Converter={StaticResource BoolToVis}}" />
             <Button
                 Height="20"
-                Command="{Binding Path=Helper.HideCommand}"
+                Command="{Binding HideCommand}"
                 CommandParameter="{Binding}"
                 Content="Hide"
                 TextBlock.FontSize="10"
-                ToolTip="CANCEL AND HIDE YOUR ORDER"
+                ToolTip="HIDE THE ORDER&#x0a;THIS WILL NOT CANCEL THE ORDER"
                 ToolTipService.ShowDuration="2000"
                 Visibility="{Binding Path=CanHide, Converter={StaticResource BoolToVis}}" />
         </StackPanel>
