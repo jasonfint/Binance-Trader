@@ -1,3 +1,10 @@
+### Version 2.7.0.7
+- [x] You can no longer use the `Order Detail` bot for orders being used by the `Scraper`
+- [x] If the `Scraper` focuses an `Order` that is using `Order Detail` it will close the `Order Detail` window and stop the bot.
+- [x] Remove `Order Helper View Model` into `Order Base`
+- [x] `Hide` will no longer `Cancel` an `Order`
+- [x] `Cancel` will no longer `Hide` an `Order`
+
 ### Version 2.7.0.5
 - [x] Fix a UI bug with the `One Second Average`
 
