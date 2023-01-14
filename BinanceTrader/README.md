@@ -1,3 +1,6 @@
+### Version 2.7.1.4
+- [x] Remove some `UI` elements that already exist in other places on the `UI`
+
 ### Version 2.7.1.3
 - [x] Fix a bug that froze the `UI` when you manually `Hide` an `Order`
 
