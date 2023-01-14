@@ -953,28 +953,10 @@
                             Grid.Column="0"
                             Foreground="White"
                             ToolTip="Current profit or loss of the order the scraper is currently watching"
-                            Text="PnL"
-                            VerticalAlignment="Center"/>
-                        <TextBox
-                            Grid.Row="10"
-                            Grid.Column="1"
-                            Margin="1,1,1,1"
-                            Background="Gray"
-                            Foreground="White"
-                            IsReadOnly="True"
-                            ToolTip="Current profit or loss of the order the scraper is currently watching"
-                            Style="{StaticResource TextBoxRounded}"
-                            VerticalContentAlignment="Center"
-                            Text="{Binding ScraperVM.PnL, Mode=TwoWay, StringFormat=#\,0.00##########, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBlock
-                            Grid.Row="11"
-                            Grid.Column="0"
-                            Foreground="White"
-                            ToolTip="Current profit or loss of the order the scraper is currently watching"
                             Text="Price" 
                             VerticalAlignment="Center"/>
                         <TextBox
-                            Grid.Row="11"
+                            Grid.Row="10"
                             Grid.Column="1"
                             Margin="1,1,1,1"
                             Background="Gray"
@@ -984,24 +966,6 @@
                             Style="{StaticResource TextBoxRounded}"
                             VerticalContentAlignment="Center"
                             Text="{Binding ScraperVM.BuyPrice, Mode=OneWay, StringFormat=#\,0.00##########, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBlock
-                            Grid.Row="12"
-                            Grid.Column="0"
-                            Foreground="White"
-                            ToolTip="Current profit or loss of the order the scraper is currently watching as a percentage"
-                            VerticalAlignment="Center"
-                            Text="Percent"/>
-                        <TextBox
-                            Grid.Row="12"
-                            Grid.Column="1"
-                            Margin="1,1,1,1"
-                            Background="Gray"
-                            Foreground="White"
-                            IsReadOnly="True"
-                            ToolTip="Current profit or loss of the order the scraper is currently watching as a percentage"
-                            Style="{StaticResource TextBoxRounded}"
-                            VerticalContentAlignment="Center"
-                            Text="{Binding ScraperVM.CurrentPnlPercent, Mode=TwoWay, StringFormat=\{0:N8\}%, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock
                             Grid.Row="13"
                             Grid.Column="0"
@@ -1252,25 +1216,9 @@
                                 VerticalAlignment="Center"
                                 Grid.Column="0"
                                 Foreground="White"
-                                Text="Reverse %"/>
-                        <TextBox
-                                Grid.Row="9"
-                                Grid.Column="1"
-                                Margin="0,1,0,1"
-                                Background="Gray"
-                                Foreground="White"
-                                IsReadOnly="True"
-                                ToolTip="Current reverse percentage of the sell order being watched"
-                                Style="{StaticResource TextBoxRounded}"
-                                Text="{Binding ScraperVM.CurrentReversePercent, Mode=TwoWay, StringFormat=\{0:N8\}%, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBlock
-                                Grid.Row="10"
-                                VerticalAlignment="Center"
-                                Grid.Column="0"
-                                Foreground="White"
                                 Text="Wait Counter"/>
                         <TextBox
-                                Grid.Row="10"
+                                Grid.Row="9"
                                 Grid.Column="1"
                                 Margin="0,1,0,1"
                                 Background="Gray"
@@ -1295,43 +1243,6 @@
                                     IsEnabled="{Binding ScraperVM.IsStartEnabled}"
                                     Command="{Binding ScraperVM.TriggerClearStatsCommand}"/>
                         </StackPanel>
-
-                        <TextBlock
-                            Grid.Row="13"
-                            Grid.Column="0"
-                            Foreground="White"
-                            ToolTip="The best bid of the current symbol"
-                            VerticalAlignment="Center"
-                            Text="Bid" />
-                        <TextBox
-                            Grid.Row="13"
-                            Grid.Column="1"
-                            Margin="1,1,1,1"
-                            Background="Gray"
-                            Foreground="White"
-                            IsReadOnly="True"
-                            VerticalContentAlignment="Center"
-                            ToolTip="The best bid of the current symbol"
-                            Style="{StaticResource TextBoxRounded}"
-                            Text="{Binding RealTimeVM.BidPrice, Mode=TwoWay, StringFormat=#\,0.00##########, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBlock
-                            Grid.Row="14"
-                            Grid.Column="0"
-                            Foreground="White"
-                            ToolTip="The best ask of the current symbol"
-                            VerticalAlignment="Center"
-                            Text="Ask" />
-                        <TextBox
-                            Grid.Row="14"
-                            VerticalContentAlignment="Center"
-                            Grid.Column="1"
-                            Margin="1,1,1,1"
-                            Background="Gray"
-                            Foreground="White"
-                            IsReadOnly="True"
-                            ToolTip="The best ask of the current symbol"
-                            Style="{StaticResource TextBoxRounded}"
-                            Text="{Binding RealTimeVM.AskPrice, Mode=OneWay, StringFormat=#\,0.00##########, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock
                             Grid.Row="15"
                             Grid.Column="0"

@@ -16,9 +16,9 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Version>2.7.1.3</Version>
-		<FileVersion>2.7.1.3</FileVersion>
-		<AssemblyVersion>2.7.1.3</AssemblyVersion>
+		<Version>2.7.1.4</Version>
+		<FileVersion>2.7.1.4</FileVersion>
+		<AssemblyVersion>2.7.1.4</AssemblyVersion>
 		<Authors>S Christison</Authors>
 		<Company>S Christison</Company>
 		<Copyright>S Christison ©2022</Copyright>

@@ -386,16 +386,6 @@ namespace BTNET.VM.ViewModels
             }
         }
 
-        public decimal ReverseDownPercent
-        {
-            get => reverseDownPercent;
-            set
-            {
-                reverseDownPercent = value;
-                PropChanged();
-            }
-        }
-
         public decimal PercentDecimal
         {
             get => percentDecimal;
@@ -412,16 +402,6 @@ namespace BTNET.VM.ViewModels
             set
             {
                 percent = value;
-                PropChanged();
-            }
-        }
-
-        public decimal CurrentPnlPercent
-        {
-            get => currentPnlPercent;
-            set
-            {
-                currentPnlPercent = value;
                 PropChanged();
             }
         }
@@ -587,22 +567,12 @@ namespace BTNET.VM.ViewModels
             }
         }
 
-        public decimal PnL
+        public decimal ReverseDownPercent
         {
-            get => pnL;
+            get => reverseDownPercent;
             set
             {
-                pnL = value;
-                PropChanged();
-            }
-        }
-
-        public decimal CurrentReversePercent
-        {
-            get => currentReversePercent;
-            set
-            {
-                currentReversePercent = value;
+                reverseDownPercent = value;
                 PropChanged();
             }
         }
@@ -1217,17 +1187,12 @@ namespace BTNET.VM.ViewModels
 
         protected private decimal UpdateCurrentPnlPercent(OrderViewModel workingBuy)
         {
-            decimal d = UpdateCurrentPnlPercentInternal(workingBuy, out decimal pnl);
-            CurrentPnlPercent = d;
-            PnL = pnl;
-            return d;
+            return UpdateCurrentPnlPercentInternal(workingBuy, out decimal pnl);
         }
 
         protected private bool CalculateReverse(OrderViewModel sell)
         {
-            bool b = CalculateReverseInternal(sell, ReverseDownPercent, out decimal currentReverseOut);
-            CurrentReversePercent = currentReverseOut;
-            return b;
+            return CalculateReverseInternal(sell, ReverseDownPercent, out decimal currentReverseOut);
         }
 
         public bool SellSwitch(OrderViewModel oldBuyOrder, decimal price)
@@ -1598,8 +1563,6 @@ namespace BTNET.VM.ViewModels
                 PercentDecimal = ZERO;
                 DownDecimal = ZERO;
                 NextPriceUp = ZERO;
-                CurrentPnlPercent = ZERO;
-                CurrentReversePercent = ZERO;
                 CountDisplay = ZERO;
             });
         }
