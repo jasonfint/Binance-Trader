@@ -1,3 +1,6 @@
+### Version 2.7.1.5
+- [x] Fix a bug in `Auto Switch` in the `Scraper`
+
 ### Version 2.7.1.4
 - [x] Remove some `UI` elements that already exist in other places on the `UI`
 
