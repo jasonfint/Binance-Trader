@@ -46,17 +46,17 @@ namespace BTNET.VM.ViewModels
 {
     public partial class ScraperViewModel : Core
     {
-        public volatile EventHandler<OrderViewModel>? WatchingLoopStarted;
-        public volatile EventHandler<string>? ScraperStopped;
-        public volatile EventHandler<OrderViewModel>? WaitingLoopStarted;
+        public volatile EventHandler<OrderViewModel> WatchingLoopStarted;
+        public volatile EventHandler<string> ScraperStopped;
+        public volatile EventHandler<OrderViewModel> WaitingLoopStarted;
 
-        public volatile EventHandler<OrderViewModel>? StartWaitingGuesser;
-        public volatile EventHandler<OrderViewModel>? StartWatchingGuesser;
+        public volatile EventHandler<OrderViewModel> StartWaitingGuesser;
+        public volatile EventHandler<OrderViewModel> StartWatchingGuesser;
 
-        public volatile EventHandler<OrderPair>? SellOrderTask;
-        public volatile EventHandler<OrderPair>? BuyOrderTask;
+        public volatile EventHandler<OrderPair> BuyOrderTask;
+        public volatile EventHandler<OrderPair> SellOrderTask;
 
-        public volatile EventHandler<OrderViewModel>? FailedFoKOrderTask;
+        public volatile EventHandler<OrderViewModel> FailedFoKOrderTask;
 
         protected private volatile SemaphoreSlim SlimSell = new SemaphoreSlim(ONE, ONE);
         protected private volatile SemaphoreSlim SlimBuy = new SemaphoreSlim(ONE, ONE);
@@ -95,10 +95,7 @@ namespace BTNET.VM.ViewModels
         private decimal downDecimal;
         private decimal percentDecimal;
         private decimal waitPrice;
-        private decimal currentPnlPercent;
-        private decimal pnL;
         private decimal buyPrice;
-        private decimal currentReversePercent;
         private decimal runningTotal = ZERO;
         private decimal win;
         private decimal lose;
@@ -227,8 +224,8 @@ namespace BTNET.VM.ViewModels
             StartWaitingGuesser += GuesserWaitingMode;
             StartWatchingGuesser += GuesserWatchingMode;
 
-            SellOrderTask += SellOrderEvent;
             BuyOrderTask += BuyOrderEvent;
+            SellOrderTask += SellOrderEvent;    
             FailedFoKOrderTask += FailedFokOrderEvent;
 
             SetupTimers();
@@ -646,7 +643,7 @@ namespace BTNET.VM.ViewModels
                     if (Break())
                     {
                         WaitingBlocked = true;
-                        ScraperStopped?.Invoke(null, EMPTY);
+                        ScraperStopped.Invoke(null, EMPTY);
                         return;
                     }
 
@@ -683,7 +680,7 @@ namespace BTNET.VM.ViewModels
                     if (CalculateReverse(WaitingSell))
                     {
                         StopWaitingTimer();
-                        StartWaitingGuesser?.Invoke(null, WaitingSell); // -> Waiting Guesser
+                        StartWaitingGuesser.Invoke(null, WaitingSell); // -> Waiting Guesser
                         return;
                     }
 
@@ -746,7 +743,7 @@ namespace BTNET.VM.ViewModels
                         if (!CalculateReverse(WaitingSell))
                         {
                             WaitingGuesserBlocked = true;
-                            WaitingLoopStarted?.Invoke(null, WaitingSell); // -> Fail Waiting Mode
+                            WaitingLoopStarted.Invoke(null, WaitingSell); // -> Fail Waiting Mode
                             return;
                         }
 
@@ -886,7 +883,7 @@ namespace BTNET.VM.ViewModels
                         if (current >= SellPercent)
                         {
                             WatchingBlocked = true;
-                            StartWatchingGuesser?.Invoke(null, workingBuy); // -> Watching Guesser
+                            StartWatchingGuesser.Invoke(null, workingBuy); // -> Watching Guesser
                             return false;
                         }
                     }
@@ -925,7 +922,7 @@ namespace BTNET.VM.ViewModels
             }
             catch
             {
-                ScraperStopped?.Invoke(null, EMPTY);
+                ScraperStopped.Invoke(null, EMPTY);
             }
 
             return true;
@@ -967,7 +964,7 @@ namespace BTNET.VM.ViewModels
 
                 if (RealTimeVM.BidPrice == ZERO || RealTimeVM.AskPrice == ZERO)
                 {
-                    ScraperStopped?.Invoke(null, TICKER_FAIL);
+                    ScraperStopped.Invoke(null, TICKER_FAIL);
                     return;
                 }
 
@@ -998,7 +995,7 @@ namespace BTNET.VM.ViewModels
                         {
                             ScraperCounter.CheckStart(OrderSide.Buy);
 
-                            WaitingLoopStarted?.Invoke(null, startOrder); // -> Waiting Mode
+                            WaitingLoopStarted.Invoke(null, startOrder); // -> Waiting Mode
                             return;
                         }
 
@@ -1058,7 +1055,7 @@ namespace BTNET.VM.ViewModels
                 }
 
                 UpdateStatus(STOPPED, Static.Red);
-                ScraperStopped?.Invoke(null, FAILED_START);
+                ScraperStopped.Invoke(null, FAILED_START);
             }, TaskCreationOptions.DenyChildAttach).ConfigureAwait(false);
         }
 
@@ -1135,7 +1132,7 @@ namespace BTNET.VM.ViewModels
             }
             else
             {
-                WaitingLoopStarted?.Invoke(null, sellOrder); // -> Fail Waiting Mode
+                WaitingLoopStarted.Invoke(null, sellOrder); // -> Fail Waiting Mode
             }
         }
 
@@ -1250,30 +1247,19 @@ namespace BTNET.VM.ViewModels
         protected private bool ProcessNextSellOrderLimit(OrderViewModel oldBuyOrder, decimal price)
         {
             UpdateStatus(PROCESSING, Static.Green);
+            OrderViewModel? nextSwitchBuyOrder = NextSwitchBuyOrder();
             WebCallResult<BinancePlacedOrder> sellResult = Trade.PlaceOrderLimitFoKAsync(Symbol, Quantity, Mode, false, OrderSide.Sell, price).Result;
             if (sellResult.Success)
             {
                 OrderViewModel newSellOrder = OrderBase.NewScraperOrder(sellResult.Data, Mode);
                 if (sellResult.Data.Status == OrderStatus.Filled)
                 {
-                    Static.ManageStoredOrders.ScraperOrderContextFromMemoryStorage(newSellOrder);
-                    SellOrderTask?.Invoke(null, new OrderPair(oldBuyOrder, newSellOrder));
-
-                    OrderViewModel? nextSwitchBuy = NextSwitchOrder();
-                    if (SwitchAutoIsChecked && nextSwitchBuy != null)
-                    {
-                        if (SwitchToNext(newSellOrder, nextSwitchBuy))
-                        {
-                            return false;
-                        }
-                    }
-
-                    WaitingLoopStarted?.Invoke(null, newSellOrder); // -> Success Waiting Mode
+                    AfterSell(new OrderPair(oldBuyOrder, newSellOrder), nextSwitchBuyOrder); // -> Success Waiting Mode
                     return false;
                 }
                 else
                 {
-                    FailedFoKOrderTask?.Invoke(null, newSellOrder);
+                    FailedFoKOrderTask.Invoke(null, newSellOrder);
                 }
             }
 
@@ -1285,45 +1271,17 @@ namespace BTNET.VM.ViewModels
         protected private bool ProcessNextSellOrderMarket(OrderViewModel oldBuyOrder)
         {
             UpdateStatus(PROCESSING, Static.Green);
+            OrderViewModel? nextSwitchBuyOrder = NextSwitchBuyOrder();
             WebCallResult<BinancePlacedOrder> sellResult = Trade.PlaceOrderMarketAsync(Symbol, Quantity, Mode, false, OrderSide.Sell).Result;
             if (sellResult.Success)
             {
-                OrderViewModel newSellOrder = OrderBase.NewScraperOrder(sellResult.Data, Mode);
-                Static.ManageStoredOrders.ScraperOrderContextFromMemoryStorage(newSellOrder);
-                SellOrderTask?.Invoke(null, new OrderPair(oldBuyOrder, newSellOrder));
-
-                OrderViewModel? nextSwitchBuy = NextSwitchOrder();
-                if (SwitchAutoIsChecked && nextSwitchBuy != null)
-                {
-                    if (SwitchToNext(newSellOrder, nextSwitchBuy))
-                    {
-                        return false;
-                    }
-                }
-
-                WaitingLoopStarted?.Invoke(null, newSellOrder); // -> Success Waiting Mode
-                return false;
+                AfterSell(new OrderPair(oldBuyOrder, OrderBase.NewScraperOrder(sellResult.Data, Mode)), nextSwitchBuyOrder); // -> Success Waiting Mode
+                return false;           
             }
 
             WatchingLoopStarted?.Invoke(true, oldBuyOrder); // -> Failed Watching Mode
             AddMessage(FAILED_MARKET_SELL_WATCH);
             return true;
-        }
-
-        private OrderViewModel? NextSwitchOrder()
-        {
-            if (SwitchAutoIsChecked)
-            {
-                lock (MainOrders.OrderUpdateLock)
-                {
-                    if (Orders.Current.Count >= TWO)
-                    {
-                        return Orders.Current[ONE] ?? null;
-                    }
-                }
-            }
-
-            return null;
         }
 
         public bool BuySwitchAdd(OrderViewModel oldOrder, string buyReason, bool watchingModeOnFail, decimal price)
@@ -1452,7 +1410,7 @@ namespace BTNET.VM.ViewModels
                 }
                 else
                 {
-                    FailedFoKOrderTask?.Invoke(null, newBuyOrder);
+                    FailedFoKOrderTask.Invoke(null, newBuyOrder);
                 }
             }
 
@@ -1464,7 +1422,7 @@ namespace BTNET.VM.ViewModels
             else
             {
                 AddMessage(FAILED_FOK_BUY_WAIT);
-                WaitingLoopStarted?.Invoke(null, oldOrder); // -> Fail Waiting Mode
+                WaitingLoopStarted.Invoke(null, oldOrder); // -> Fail Waiting Mode
             }
 
             return false;
@@ -1493,7 +1451,7 @@ namespace BTNET.VM.ViewModels
             else
             {
                 AddMessage(FAILED_MARKET_BUY_WAIT);
-                WaitingLoopStarted?.Invoke(null, oldOrder); // -> Fail Waiting Mode
+                WaitingLoopStarted.Invoke(null, oldOrder); // -> Fail Waiting Mode
             }
 
             return false;
@@ -1845,6 +1803,47 @@ namespace BTNET.VM.ViewModels
             AddMessage(SELL_PROCESSED + pnlr);
         }
 
+        public OrderViewModel? NextSwitchBuyOrder()
+        {
+            if (SwitchAutoIsChecked)
+            {
+                lock (MainOrders.OrderUpdateLock)
+                {
+                    var count = Orders.Current.Count;
+                    if (count >= TWO)
+                    {
+                        var order = Orders.Current[ONE];
+                        if (order.Side == OrderSide.Buy)
+                        {
+                            return order;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public void AfterSell(OrderPair pair, OrderViewModel? switchOrder)
+        {
+            SellOrderTask.Invoke(null, pair);
+
+            if (SwitchAutoIsChecked)
+            {
+                if (switchOrder != null)
+                {
+                    SwitchToNext(pair.Sell, switchOrder);
+                    return;
+                }
+                else
+                {
+                    AddMessage(SWITCHING_NO_ORDER);
+                }
+            }
+
+            WaitingLoopStarted.Invoke(null, pair.Sell); // -> Success Waiting Mode
+        }
+
         public void BuyOrderEvent(object o, OrderPair pair)
         {
             NotifyVM.Notification(ORDER_PLACED + pair.Buy.Symbol + QUANTITY + pair.Buy.Quantity, Static.Gold);
@@ -1944,7 +1943,7 @@ namespace BTNET.VM.ViewModels
                     }
                     else
                     {
-                        ScraperStopped?.Invoke(null, NO_ORDER_ERROR); // -> Error Stop
+                        ScraperStopped.Invoke(null, NO_ORDER_ERROR); // -> Error Stop
                         CloseSlim.Release();
                         return;
                     }
@@ -1991,8 +1990,8 @@ namespace BTNET.VM.ViewModels
 
             if (!NotLimitOrFilled(sell) || !NotLimitOrFilled(buy))
             {
-                ScraperStopped?.Invoke(null, NO_LIMIT_SWITCH);
-                SwitchAutoIsChecked = false;
+                ScraperStopped.Invoke(null, NO_LIMIT_SWITCH);
+                //SwitchAutoIsChecked = false;
                 return false;
             }
 
@@ -2014,7 +2013,7 @@ namespace BTNET.VM.ViewModels
             }
 
             NotifyVM.Notification(SWITCH_ERROR);
-            SwitchAutoIsChecked = false;
+            //SwitchAutoIsChecked = false;
             return false;
         }
 
@@ -2058,16 +2057,16 @@ namespace BTNET.VM.ViewModels
                         }
                         else
                         {
-                            ScraperStopped?.Invoke(null, NO_LIMIT_ADD);
+                            ScraperStopped.Invoke(null, NO_LIMIT_ADD);
                             return;
                         }
                     }
 
-                    ScraperStopped?.Invoke(null, NO_BASIS);
+                    ScraperStopped.Invoke(null, NO_BASIS);
                 }
                 catch (Exception ex)
                 {
-                    ScraperStopped?.Invoke(null, EXCEPTION_ADDING);
+                    ScraperStopped.Invoke(null, EXCEPTION_ADDING);
                     WriteLog.Error(ex);
                 }
             }).ConfigureAwait(false);
@@ -2103,11 +2102,11 @@ namespace BTNET.VM.ViewModels
                         return;
                     }
 
-                    ScraperStopped?.Invoke(null, NO_ORDER_ERROR);
+                    ScraperStopped.Invoke(null, NO_ORDER_ERROR);
                 }
                 catch (Exception ex)
                 {
-                    ScraperStopped?.Invoke(null, EXCEPTION_STARTING);
+                    ScraperStopped.Invoke(null, EXCEPTION_STARTING);
                     WriteLog.Error(ex);
                 }
             }).ConfigureAwait(false);
@@ -2179,7 +2178,7 @@ namespace BTNET.VM.ViewModels
 
             _ = Task.Run(() =>
             {
-                ScraperStopped?.Invoke(null, STOPPED_REQUEST);
+                ScraperStopped.Invoke(null, STOPPED_REQUEST);
             }).ConfigureAwait(false);
         }
 

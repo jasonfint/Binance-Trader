@@ -45,7 +45,9 @@ namespace BTNET.VM.ViewModels
         private const string NO_LIMIT_SWITCH = "Tried to switch to a Limit order that wasn't filled, Stopping Scraper";
         private const string EXCEPTION_ADDING = "Exception while Adding, Check logs";
         private const string EXCEPTION_STARTING = "Exception while starting Scraper, Check logs";
-        private const string SWITCHING = "Switching Orders";
+        private const string SWITCHING_NO_ORDER = "No Order to Switch";
+        private const string SWITCHING = "Switching";
+        private const string SWITCHING_ORDERS = SWITCHING +" Orders";
         private const string ORDER_MISMATCH = "The first order is not the buy order in the scraper";
         private const string NO_ORDER_ERROR = "There are no orders to use with the scraper";
         private const string NO_LIMIT_START = "You can't start the Scraper with a Limit Order";
